@@ -39,6 +39,14 @@ $(function() {
                 return elem && !elem.match(ip_regexp_rfc1918);
             });
         table.clear().draw(false);
+        if (ips.length == 0) {
+            map.Load({
+                locations: [{
+                    lat: 0,
+                    lon: -180,
+                    zoom: 2
+                }]});
+        }
         ips.forEach(function(elem, index) {
             $.get('//ipinfo.io/' + elem + '/geo?callback=?', function(resp){
                 var [lat, lon] = resp.loc.split(',');
