@@ -64,7 +64,7 @@ $(function() {
                         return {
                             lat: elem[5],
                             lon: elem[6],
-                            html: elem.slice(2 ,5).join(',')
+                            html: elem.slice(2 ,5).join(', ')
                         };
                     });
                     map.SetLocations(locations, true);
