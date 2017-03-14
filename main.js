@@ -17,6 +17,7 @@ $(function() {
         }
     }).Load();
 
+    var locations = [];
     var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
     var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
     $('#form').submit(function(event) {
@@ -60,16 +61,37 @@ $(function() {
                         .filter(function(elem) {
                             return elem[3] != "";
                         });
-                    var locations = data.map(function(elem) {
-                        return {
-                            lat: elem[5],
-                            lon: elem[6],
-                            html: elem.slice(2 ,5).join(', ')
-                        };
-                    });
+                    locations = [];
+                    var last_lat = 0, last_lon = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        var elem = data[i];
+                        var lat = elem[5];
+                        var lon = elem[6];
+                        if (!(lat == last_lat && lon == last_lon)) {
+                            locations.push({
+                                num: elem[0],
+                                lat: lat,
+                                lon: lon,
+                                html: elem.slice(2 ,5).join(', ')
+                            });
+                        }
+                        last_lat = lat;
+                        last_lon = lon;
+                    }
                     map.SetLocations(locations, true);
                 }
             }, 'jsonp');
         });
+    });
+
+    $('#table tbody').on('click', 'tr', function() {
+        var num = table.row(this).data()[0];
+        var index;
+        for (index = 0; index < locations.length; index++) {
+            if (num == locations[index].num) {
+                break;
+            }
+        }
+        map.ViewOnMap(index + 1);
     });
 });
