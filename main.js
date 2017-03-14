@@ -36,7 +36,7 @@ $(function() {
             });
         table.clear().draw(false);
         ips.forEach(function(elem, index) {
-            $.get('http://ipinfo.io/' + elem + '/geo?callback=?', function(resp){
+            $.get('//ipinfo.io/' + elem + '/geo?callback=?', function(resp){
                 var [lat, lon] = resp.loc.split(',');
                 var row = [
                     index + 1,
