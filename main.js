@@ -85,10 +85,12 @@ $(function() {
     });
 
     $('#table tbody').on('click', 'tr', function() {
-        var num = table.row(this).data()[0];
+        var data = table.row(this).data();
+        var lat = data[5];
+        var lon = data[6];
         var index;
         for (index = 0; index < locations.length; index++) {
-            if (num == locations[index].num) {
+            if (lat == locations[index].lat && lon == locations[index].lon) {
                 break;
             }
         }
