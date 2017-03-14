@@ -24,6 +24,9 @@ $(function() {
         var input = $(this).find('textarea').val();
         var ips = input.trim().split("\n")
             .map(function(elem) {
+                if (elem.indexOf('traceroute') >= 0) {
+                    return null;
+                }
                 var m = elem.match(ip_regexp);
                 if (m){
                     return m[0];
