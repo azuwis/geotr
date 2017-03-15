@@ -24,7 +24,20 @@
     <div class="mui-container-fluid">
       <div class="mui-row">
         <div class="mui-col-md-6">
-          <div id="gmap"></div>
+          <div class="mui-row">
+            <div id="gmap"></div>
+          </div>
+          <div class="mui-row">
+            <div id="form">
+              <form id="input" class="mui-form">
+                <div class="mui-textfield">
+                  <textarea name="traceroute" rows="8"></textarea>
+                </div>
+                <button type="submit" class="mui-btn mui-btn--raised">Submit</button>
+                <button type="reset" class="mui-btn mui-btn--raised">Clear</button>
+              </form>
+            </div>
+          </div>
         </div>
         <div class="mui-col-md-6">
           <table id="table" class="mui-table mui-table--bordered">
@@ -42,19 +55,6 @@
             <tbody>
             </tbody>
           </table>
-        </div>
-      </div>
-      <div class="mui-row">
-        <div class="mui-col-md-6">
-          <div id="form">
-            <form id="input" class="mui-form">
-              <div class="mui-textfield">
-                <textarea name="traceroute" rows="8"></textarea>
-              </div>
-              <button type="submit" class="mui-btn mui-btn--raised">Submit</button>
-              <button type="reset" class="mui-btn mui-btn--raised">Clear</button>
-            </form>
-          </div>
         </div>
       </div>
     </div>
