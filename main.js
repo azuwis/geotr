@@ -26,12 +26,20 @@ var getInfoFromIPs = function(ips, func) {
     var info = [];
     $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
         info = resp.map(function(elem, index) {
+            var region, city;
+            if (elem.isp == 'China Telecom backbone network') {
+                region = '';
+                city = '';
+            } else {
+                region = elem.regionName;
+                city = elem.city;
+            }
             return {
                 num: index + 1,
                 ip: elem.query,
                 country: elem.country,
-                region: elem.regionName,
-                city: elem.city,
+                region: region,
+                city: city,
                 lat: elem.lat,
                 lon: elem.lon
             };
@@ -42,7 +50,7 @@ var getInfoFromIPs = function(ips, func) {
 
 var getLocsFromInfo = function(info) {
     var data = info.filter(function(elem) {
-        return elem.region != "";
+        return elem.region != '';
     });
     var locs = [];
     var last_lat = 0, last_lon = 0;
