@@ -82,7 +82,7 @@ $(function() {
                         var lon = elem[6];
                         if (!(lat == last_lat && lon == last_lon)) {
                             locations.push({
-                                label: String(elem[0]),
+                                // label: String(elem[0]),
                                 lat: lat,
                                 lon: lon,
                                 html: elem.slice(2 ,5).join(', ')
