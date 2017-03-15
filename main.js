@@ -13,6 +13,11 @@ $(function() {
         }],
         type: 'polyline',
         stroke_options: {
+            icons: [{
+                icon: {path: google.maps.SymbolPath.FORWARD_OPEN_ARROW},
+                offset: '20px',
+                repeat: '300px'
+            }],
             strokeColor: '#FF0000'
         }
     }).Load();
