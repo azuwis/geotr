@@ -19,40 +19,42 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
-var getInfoFromIPs = function(ips, func) {
-    var post_data = ips.map(function(elem) {
-        return {query: elem};
-    });
-    var info = [];
-    $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
-        info = resp.map(function(elem, index) {
-            var region = '', city = '', isp = '';
-            if (elem.isp.match(/(backbone|cnc group)/i)) {
-                region = '';
-                city = '';
-            } else {
-                region = elem.regionName;
-                city = elem.city;
-            }
-            isp = elem.isp;
-            if (elem.isp.match(/telecom/i)) {
-                isp = 'TEL';
-            } else if (elem.isp.match(/(cnc|unicom)/i)) {
-                isp = 'CNC';
-            }
-            return {
-                num: index + 1,
-                ip: elem.query,
-                country: elem.country,
-                region: region,
-                city: city,
-                isp: isp,
-                lat: elem.lat,
-                lon: elem.lon
-            };
+var getInfo = {
+    ipapi: function(ips, func) {
+        var post_data = ips.map(function(elem) {
+            return {query: elem};
         });
-        func(info);
-    }, 'json');
+        var info = [];
+        $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
+            info = resp.map(function(elem, index) {
+                var region = '', city = '', isp = '';
+                if (elem.isp.match(/(backbone|cnc group)/i)) {
+                    region = '';
+                    city = '';
+                } else {
+                    region = elem.regionName;
+                    city = elem.city;
+                }
+                isp = elem.isp;
+                if (elem.isp.match(/telecom/i)) {
+                    isp = 'TEL';
+                } else if (elem.isp.match(/(cnc|unicom)/i)) {
+                    isp = 'CNC';
+                }
+                return {
+                    num: index + 1,
+                    ip: elem.query,
+                    country: elem.country,
+                    region: region,
+                    city: city,
+                    isp: isp,
+                    lat: elem.lat,
+                    lon: elem.lon
+                };
+            });
+            func(info);
+        }, 'json');
+    }
 };
 
 var getLocsFromInfo = function(info) {
@@ -114,10 +116,11 @@ $(function() {
     }).Load();
 
     var locations = [];
-    $('#form').submit(function(event) {
+    $('.submit').click(function(event) {
         event.preventDefault();
         table.clear().draw(false);
-        var input = $(this).find('textarea').val();
+        var id = $(this).attr('id');
+        var input = $('#form').find('textarea').val();
         var ips = getIPsFromInput(input);
         if (ips.length == 0) {
             map.Load({
@@ -127,11 +130,14 @@ $(function() {
                     zoom: 2
                 }]});
         } else {
-            getInfoFromIPs(ips, function(info) {
-                table.rows.add(info).draw(false);
-                locations = getLocsFromInfo(info);
-                map.SetLocations(locations, true);
-            });
+            var func = getInfo[id];
+            if (typeof func == 'function') {
+                func(ips, function(info) {
+                    table.rows.add(info).draw(false);
+                    locations = getLocsFromInfo(info);
+                    map.SetLocations(locations, true);
+                });
+            }
         }
     });
 
