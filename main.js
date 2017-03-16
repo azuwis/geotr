@@ -26,13 +26,17 @@ var getInfoFromIPs = function(ips, func) {
     var info = [];
     $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
         info = resp.map(function(elem, index) {
-            var region, city;
+            var region = '', city = '', isp = '';
             if (elem.isp == 'China Telecom backbone network') {
-                region = 'Telecom';
-                city = 'Backbone';
+                region = 'Backbone';
             } else {
                 region = elem.regionName;
                 city = elem.city;
+            }
+            if (elem.isp.indexOf('Telecom') >= 0) {
+                isp = 'TEL';
+            } else if (elem.isp.match(/(CNC|Unicom)/i)) {
+                isp = 'CNC';
             }
             return {
                 num: index + 1,
@@ -40,6 +44,7 @@ var getInfoFromIPs = function(ips, func) {
                 country: elem.country,
                 region: region,
                 city: city,
+                isp: isp,
                 lat: elem.lat,
                 lon: elem.lon
             };
@@ -50,7 +55,7 @@ var getInfoFromIPs = function(ips, func) {
 
 var getLocsFromInfo = function(info) {
     var data = info.filter(function(elem) {
-        return elem.region != '' && elem.city != 'Backbone';
+        return elem.region != '' && elem.city != '';
     });
     var locs = [];
     var last_lat = 0, last_lon = 0;
@@ -83,6 +88,7 @@ $(function() {
             { data: 'country' },
             { data: 'region' },
             { data: 'city' },
+            { data: 'isp' },
             { data: 'lat' },
             { data: 'lon' }
         ]
