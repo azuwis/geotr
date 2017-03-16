@@ -142,26 +142,29 @@ $(function() {
     }).Load();
 
     var locations = [];
+    var map_loaded = false;
     $('.submit').click(function(event) {
         event.preventDefault();
         table.clear().draw(false);
-        var id = $(this).attr('id');
-        var input = $('#form').find('textarea').val();
-        var ips = getIPsFromInput(input);
-        if (ips.length == 0) {
+        if (map_loaded) {
             map.Load({
                 locations: [{
                     lat: 0,
                     lon: -180,
                     zoom: 2
                 }]});
-        } else {
+        }
+        var id = $(this).attr('id');
+        var input = $('#form').find('textarea').val();
+        var ips = getIPsFromInput(input);
+        if (ips.length > 0) {
             var func = getInfo[id];
             if (typeof func == 'function') {
                 func(ips, function(info) {
                     table.rows.add(info).draw(false);
                     locations = getLocsFromInfo(info);
                     map.SetLocations(locations, true);
+                    map_loaded = true;
                 });
             }
         }
