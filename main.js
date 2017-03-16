@@ -28,8 +28,8 @@ var getInfoFromIPs = function(ips, func) {
         info = resp.map(function(elem, index) {
             var region, city;
             if (elem.isp == 'China Telecom backbone network') {
-                region = '';
-                city = '';
+                region = 'Telecom';
+                city = 'Backbone';
             } else {
                 region = elem.regionName;
                 city = elem.city;
@@ -50,7 +50,7 @@ var getInfoFromIPs = function(ips, func) {
 
 var getLocsFromInfo = function(info) {
     var data = info.filter(function(elem) {
-        return elem.region != '';
+        return elem.region != '' && elem.city != 'Backbone';
     });
     var locs = [];
     var last_lat = 0, last_lon = 0;
