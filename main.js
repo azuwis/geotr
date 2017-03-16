@@ -27,15 +27,17 @@ var getInfoFromIPs = function(ips, func) {
     $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
         info = resp.map(function(elem, index) {
             var region = '', city = '', isp = '';
-            if (elem.isp == 'China Telecom backbone network') {
-                region = 'Backbone';
+            if (elem.isp.match(/(backbone|cnc group)/i)) {
+                region = '';
+                city = '';
             } else {
                 region = elem.regionName;
                 city = elem.city;
             }
-            if (elem.isp.indexOf('Telecom') >= 0) {
+            isp = elem.isp;
+            if (elem.isp.match(/telecom/i)) {
                 isp = 'TEL';
-            } else if (elem.isp.match(/(CNC|Unicom)/i)) {
+            } else if (elem.isp.match(/(cnc|unicom)/i)) {
                 isp = 'CNC';
             }
             return {
