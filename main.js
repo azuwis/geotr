@@ -108,6 +108,10 @@ var getLocsFromInfo = function(info) {
 };
 
 $(function() {
+    if (location.protocol == 'https:') {
+        $('.no-https').remove();
+    }
+
     var table = $('#table').DataTable({
         info: false,
         paging: false,
