@@ -55,6 +55,33 @@ var getInfo = {
             func(info);
         }, 'json');
     },
+    ipinfo: function(ips, func) {
+        var info = [];
+        ips.forEach(function(elem, index) {
+            $.get('//ipinfo.io/' + elem + '/?callback=?', function(resp){
+                resp['num'] = index + 1;
+                info.push(resp);
+                if (ips.length == info.length) {
+                    info = info.sort(function(x, y) {
+                        return x['num'] - y['num'];
+                    }).map(function(elem) {
+                        var [lat, lon] = elem.loc.split(',');
+                        return {
+                            num: elem.num,
+                            ip: elem.ip,
+                            country: elem.country,
+                            region: elem.region,
+                            city: elem.city,
+                            isp: '',
+                            lat: lat,
+                            lon: lon
+                        };
+                    });
+                    func(info);
+                }
+            }, 'jsonp');
+        });
+    },
     freegeoip: function(ips, func) {
         var info = [];
         ips.forEach(function(elem, index) {
