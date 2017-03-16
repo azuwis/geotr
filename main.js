@@ -54,6 +54,32 @@ var getInfo = {
             });
             func(info);
         }, 'json');
+    },
+    freegeoip: function(ips, func) {
+        var info = [];
+        ips.forEach(function(elem, index) {
+            $.get('//freegeoip.net/json/' + elem + '?callback=?', function(resp){
+                resp['num'] = index + 1;
+                info.push(resp);
+                if (ips.length == info.length) {
+                    info = info.sort(function(x, y) {
+                        return x['num'] - y['num'];
+                    }).map(function(elem) {
+                        return {
+                            num: elem.num,
+                            ip: elem.ip,
+                            country: elem.country_name,
+                            region: elem.region_name,
+                            city: elem.city,
+                            isp: '',
+                            lat: elem.latitude,
+                            lon: elem.longitude
+                        };
+                    });
+                    func(info);
+                }
+            }, 'jsonp');
+        });
     }
 };
 
