@@ -19,7 +19,7 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
-var getInfoMulti = function(ips, url_func, map_func, callback_func) {
+var getInfoMulti = function(ips, url_func, map_func, method, callback_func) {
     var failed = false;
     var info = [];
     ips.forEach(function(elem, index) {
@@ -37,12 +37,12 @@ var getInfoMulti = function(ips, url_func, map_func, callback_func) {
                     callback_func(info);
                 }
             }
-        }, 'jsonp')
+        }, method)
             .fail(function() {
                 failed = true;
                 info.push({});
                 if (ips.length == info.length) {
-                    toastr.warning('Failed to get IP info.');
+                    toastr.warning('Failed to get IP info, please disable adblock on this page if you have any.');
                     callback_func(null);
                 }
             });
@@ -86,7 +86,7 @@ var getInfo = {
             func(info);
         }, 'json')
             .fail(function() {
-                toastr.warning('Failed to get IP info.');
+                toastr.warning('Failed to get IP info, please disable adblock on this page if you have any.');
                 func(null);
             });
     },
@@ -108,7 +108,7 @@ var getInfo = {
                              lon: lon
                          };
                      },
-                     func);
+                     'jsonp', func);
     },
     freegeoip: function(ips, func) {
         getInfoMulti(ips,
@@ -127,7 +127,35 @@ var getInfo = {
                              lon: elem.longitude
                          };
                      },
-                     func);
+                     'jsonp', func);
+    },
+    nekudo: function(ips, func) {
+        getInfoMulti(ips,
+                     function(elem) {
+                         return '//geoip.nekudo.com/api/' + elem + '/full';
+                     },
+                     function(elem) {
+                         var region = '', city = '';
+                         var subdivisions = elem.subdivisions;
+                         if (subdivisions) {
+                             region = subdivisions[0].names.en;
+                         }
+                         var elem_city = elem.city;
+                         if (elem_city) {
+                             city = elem_city.names.en;
+                         }
+                         return {
+                             num: elem.num,
+                             ip: elem.traits.ip_address,
+                             country: elem.country.names.en,
+                             region: region,
+                             city: city,
+                             isp: '',
+                             lat: elem.location.latitude,
+                             lon: elem.location.longitude
+                         };
+                     },
+                     'json', func);
     }
 };
 
