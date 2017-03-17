@@ -178,7 +178,6 @@ $(function() {
     var locations = [];
     var map_loaded = false;
     $('.submit').click(function(event) {
-        NProgress.start();
         event.preventDefault();
         table.clear().draw(false);
         if (map_loaded) {
@@ -193,6 +192,7 @@ $(function() {
         var input = $('#form').find('textarea').val();
         var ips = getIPsFromInput(input);
         if (ips.length > 0) {
+            NProgress.start();
             var func = getInfo[id];
             if (typeof func == 'function') {
                 func(ips, function(info) {
