@@ -57,6 +57,7 @@ var getInfo = {
         }, 'json');
     },
     ipinfo: function(ips, func) {
+        var failed = false;
         var info = [];
         ips.forEach(function(elem, index) {
             $.get('//ipinfo.io/' + elem + '/?callback=?', function(resp){
@@ -64,24 +65,36 @@ var getInfo = {
                 resp['num'] = index + 1;
                 info.push(resp);
                 if (ips.length == info.length) {
-                    info = info.sort(function(x, y) {
-                        return x['num'] - y['num'];
-                    }).map(function(elem) {
-                        var [lat, lon] = elem.loc.split(',');
-                        return {
-                            num: elem.num,
-                            ip: elem.ip,
-                            country: elem.country,
-                            region: elem.region,
-                            city: elem.city,
-                            isp: '',
-                            lat: lat,
-                            lon: lon
-                        };
-                    });
-                    func(info);
+                    if (failed) {
+                        func(null);
+                    } else {
+                        info = info.sort(function(x, y) {
+                            return x['num'] - y['num'];
+                        }).map(function(elem) {
+                            var [lat, lon] = elem.loc.split(',');
+                            return {
+                                num: elem.num,
+                                ip: elem.ip,
+                                country: elem.country,
+                                region: elem.region,
+                                city: elem.city,
+                                isp: '',
+                                lat: lat,
+                                lon: lon
+                            };
+                        });
+                        func(info);
+                    }
                 }
-            }, 'jsonp');
+            }, 'jsonp')
+                .fail(function() {
+                    failed = true;
+                    info.push({});
+                    if (ips.length == info.length) {
+                        toastr.error('Failed to get IP info.');
+                        func(null);
+                    }
+                });
         });
     },
     freegeoip: function(ips, func) {
@@ -197,10 +210,12 @@ $(function() {
             var func = getInfo[id];
             if (typeof func == 'function') {
                 func(ips, function(info) {
-                    table.rows.add(info).draw(false);
-                    locations = getLocsFromInfo(info);
-                    map.SetLocations(locations, true);
-                    map_loaded = true;
+                    if (info) {
+                        table.rows.add(info).draw(false);
+                        locations = getLocsFromInfo(info);
+                        map.SetLocations(locations, true);
+                        map_loaded = true;
+                    }
                     NProgress.done();
                     $('.submit').prop('disabled', false);
                 });
