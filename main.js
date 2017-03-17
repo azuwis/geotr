@@ -25,6 +25,7 @@ var getInfo = {
             return {query: elem};
         });
         var info = [];
+        NProgress.set(0.5);
         $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
             info = resp.map(function(elem, index) {
                 var region = '', city = '', isp = '';
@@ -59,6 +60,7 @@ var getInfo = {
         var info = [];
         ips.forEach(function(elem, index) {
             $.get('//ipinfo.io/' + elem + '/?callback=?', function(resp){
+                NProgress.inc(0.05);
                 resp['num'] = index + 1;
                 info.push(resp);
                 if (ips.length == info.length) {
@@ -86,6 +88,7 @@ var getInfo = {
         var info = [];
         ips.forEach(function(elem, index) {
             $.get('//freegeoip.net/json/' + elem + '?callback=?', function(resp){
+                NProgress.inc(0.05);
                 resp['num'] = index + 1;
                 info.push(resp);
                 if (ips.length == info.length) {
@@ -175,6 +178,7 @@ $(function() {
     var locations = [];
     var map_loaded = false;
     $('.submit').click(function(event) {
+        NProgress.start();
         event.preventDefault();
         table.clear().draw(false);
         if (map_loaded) {
@@ -196,6 +200,7 @@ $(function() {
                     locations = getLocsFromInfo(info);
                     map.SetLocations(locations, true);
                     map_loaded = true;
+                    NProgress.done();
                 });
             }
         }
