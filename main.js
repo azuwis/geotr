@@ -193,6 +193,7 @@ $(function() {
         var ips = getIPsFromInput(input);
         if (ips.length > 0) {
             NProgress.start();
+            $('.submit').prop('disabled', true);
             var func = getInfo[id];
             if (typeof func == 'function') {
                 func(ips, function(info) {
@@ -201,6 +202,7 @@ $(function() {
                     map.SetLocations(locations, true);
                     map_loaded = true;
                     NProgress.done();
+                    $('.submit').prop('disabled', false);
                 });
             }
         }
