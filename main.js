@@ -84,7 +84,11 @@ var getInfo = {
                 };
             });
             func(info);
-        }, 'json');
+        }, 'json')
+            .fail(function() {
+                toastr.warning('Failed to get IP info.');
+                func(null);
+            });
     },
     ipinfo: function(ips, func) {
         getInfoMulti(ips,
