@@ -19,6 +19,36 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
+var getInfoMulti = function(ips, url_func, map_func, callback_func) {
+    var failed = false;
+    var info = [];
+    ips.forEach(function(elem, index) {
+        $.get(url_func(elem), function(resp){
+            NProgress.inc(0.05);
+            resp['num'] = index + 1;
+            info.push(resp);
+            if (ips.length == info.length) {
+                if (failed) {
+                    callback_func(null);
+                } else {
+                    info = info.sort(function(x, y) {
+                        return x['num'] - y['num'];
+                    }).map(map_func);
+                    callback_func(info);
+                }
+            }
+        }, 'jsonp')
+            .fail(function() {
+                failed = true;
+                info.push({});
+                if (ips.length == info.length) {
+                    toastr.warning('Failed to get IP info.');
+                    callback_func(null);
+                }
+            });
+    });
+};
+
 var getInfo = {
     ipapi: function(ips, func) {
         var post_data = ips.map(function(elem) {
@@ -57,72 +87,43 @@ var getInfo = {
         }, 'json');
     },
     ipinfo: function(ips, func) {
-        var failed = false;
-        var info = [];
-        ips.forEach(function(elem, index) {
-            $.get('//ipinfo.io/' + elem + '/?callback=?', function(resp){
-                NProgress.inc(0.05);
-                resp['num'] = index + 1;
-                info.push(resp);
-                if (ips.length == info.length) {
-                    if (failed) {
-                        func(null);
-                    } else {
-                        info = info.sort(function(x, y) {
-                            return x['num'] - y['num'];
-                        }).map(function(elem) {
-                            var [lat, lon] = elem.loc.split(',');
-                            return {
-                                num: elem.num,
-                                ip: elem.ip,
-                                country: elem.country,
-                                region: elem.region,
-                                city: elem.city,
-                                isp: '',
-                                lat: lat,
-                                lon: lon
-                            };
-                        });
-                        func(info);
-                    }
-                }
-            }, 'jsonp')
-                .fail(function() {
-                    failed = true;
-                    info.push({});
-                    if (ips.length == info.length) {
-                        toastr.error('Failed to get IP info.');
-                        func(null);
-                    }
-                });
-        });
+        getInfoMulti(ips,
+                     function(elem) {
+                         return '//ipinfo.io/' + elem + '/?callback=?';
+                     },
+                     function(elem) {
+                         var [lat, lon] = elem.loc.split(',');
+                         return {
+                             num: elem.num,
+                             ip: elem.ip,
+                             country: elem.country,
+                             region: elem.region,
+                             city: elem.city,
+                             isp: '',
+                             lat: lat,
+                             lon: lon
+                         };
+                     },
+                     func);
     },
     freegeoip: function(ips, func) {
-        var info = [];
-        ips.forEach(function(elem, index) {
-            $.get('//freegeoip.net/json/' + elem + '?callback=?', function(resp){
-                NProgress.inc(0.05);
-                resp['num'] = index + 1;
-                info.push(resp);
-                if (ips.length == info.length) {
-                    info = info.sort(function(x, y) {
-                        return x['num'] - y['num'];
-                    }).map(function(elem) {
-                        return {
-                            num: elem.num,
-                            ip: elem.ip,
-                            country: elem.country_name,
-                            region: elem.region_name,
-                            city: elem.city,
-                            isp: '',
-                            lat: elem.latitude,
-                            lon: elem.longitude
-                        };
-                    });
-                    func(info);
-                }
-            }, 'jsonp');
-        });
+        getInfoMulti(ips,
+                     function(elem) {
+                         return '//freegeoip.net/json/' + elem + '?callback=?';
+                     },
+                     function(elem) {
+                         return {
+                             num: elem.num,
+                             ip: elem.ip,
+                             country: elem.country_name,
+                             region: elem.region_name,
+                             city: elem.city,
+                             isp: '',
+                             lat: elem.latitude,
+                             lon: elem.longitude
+                         };
+                     },
+                     func);
     }
 };
 
