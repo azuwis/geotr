@@ -160,6 +160,14 @@ $(function() {
         $('.no-https').remove();
     }
 
+    $('#traceroute').one('focus', function() {
+        $(this).val('');
+    });
+
+    $('#clear').click(function() {
+        $('#traceroute').val('');
+    });
+
     var table = $('#table').DataTable({
         info: false,
         paging: false,
@@ -207,7 +215,7 @@ $(function() {
                 }]});
         }
         var id = $(this).attr('id');
-        var input = $('#form').find('textarea').val();
+        var input = $('#traceroute').val();
         var ips = getIPsFromInput(input);
         if (ips.length > 0) {
             NProgress.start();
@@ -225,6 +233,8 @@ $(function() {
                     $('.submit').prop('disabled', false);
                 });
             }
+        } else {
+            toastr.info('Paste the output of "traceroute -n IP" in the form and submit.');
         }
     });
 
