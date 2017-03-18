@@ -191,6 +191,17 @@ var notifyError = function() {
     toastr.warning('Failed to get IP info, please try another IP info provider.');
 };
 
+var resetMap = function(map, map_loaded) {
+    if (map_loaded) {
+        map.Load({
+            locations: [{
+                lat: 0,
+                lon: -180,
+                zoom: 2
+            }]});
+    }
+}
+
 $(function() {
     $.ajax({
         url: 'advertisement.js',
@@ -209,6 +220,7 @@ $(function() {
 
     $('#clear').click(function() {
         $('#traceroute').val('');
+        resetMap(map, map_loaded);
     });
 
     var table = $('#table').DataTable({
@@ -249,14 +261,7 @@ $(function() {
     $('.submit').click(function(event) {
         event.preventDefault();
         table.clear().draw(false);
-        if (map_loaded) {
-            map.Load({
-                locations: [{
-                    lat: 0,
-                    lon: -180,
-                    zoom: 2
-                }]});
-        }
+        resetMap(map, map_loaded);
         var id = $(this).attr('id');
         var input = $('#traceroute').val();
         var ips = getIPsFromInput(input);
