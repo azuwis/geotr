@@ -202,6 +202,17 @@ var resetMap = function(map) {
     }
 };
 
+var viewOnMap = function(map, lat, lon) {
+    var index;
+    var markers = map.markers;
+    for (index = 0; index < markers.length; index++) {
+        if (lat == markers[index].lat && lon == markers[index].lon) {
+            break;
+        }
+    }
+    map.ViewOnMap(index + 1);
+};
+
 $(function() {
     $.ajax({
         url: 'advertisement.js',
@@ -256,7 +267,6 @@ $(function() {
         }
     }).Load();
 
-    var locations = [];
     $('.submit').click(function(event) {
         event.preventDefault();
         table.clear().draw(false);
@@ -272,7 +282,7 @@ $(function() {
                 func(ips, function(info) {
                     if (info) {
                         table.rows.add(info).draw(false);
-                        locations = getLocsFromInfo(info);
+                        var locations = getLocsFromInfo(info);
                         map.SetLocations(locations, true);
                         map_loaded = true;
                     }
@@ -287,14 +297,6 @@ $(function() {
 
     $('#table tbody').on('click', 'tr', function() {
         var data = table.row(this).data();
-        var lat = data.lat;
-        var lon = data.lon;
-        var index;
-        for (index = 0; index < locations.length; index++) {
-            if (lat == locations[index].lat && lon == locations[index].lon) {
-                break;
-            }
-        }
-        map.ViewOnMap(index + 1);
+        viewOnMap(map, data.lat, data.lon);
     });
 });
