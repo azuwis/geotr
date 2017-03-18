@@ -200,7 +200,7 @@ var resetMap = function(map) {
                 zoom: 2
             }]});
     }
-}
+};
 
 $(function() {
     $.ajax({
