@@ -183,11 +183,22 @@ var getLocsFromInfo = function(info) {
     return locs;
 };
 
+var notifyAdblock = function() {
+    toastr.warning('Please disable adblock on this page to make IP info APIs work.', '', {timeOut: 0});
+};
+
 var notifyError = function() {
     toastr.warning('Failed to get IP info, please try another IP info provider.');
 };
 
 $(function() {
+    $.ajax({
+        url: 'advertisement.js',
+        dataType: 'script'
+    }).fail(function() {
+        notifyAdblock();
+    });
+
     if (location.protocol == 'https:') {
         $('.no-https').remove();
     }
