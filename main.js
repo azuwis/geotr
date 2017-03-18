@@ -42,7 +42,7 @@ var getInfoMulti = function(ips, url_func, map_func, method, callback_func) {
                 failed = true;
                 info.push({});
                 if (ips.length == info.length) {
-                    toastr.warning('Failed to get IP info, please disable adblock on this page if you have any.');
+                    notifyError();
                     callback_func(null);
                 }
             });
@@ -86,7 +86,7 @@ var getInfo = {
             func(info);
         }, 'json')
             .fail(function() {
-                toastr.warning('Failed to get IP info, please disable adblock on this page if you have any.');
+                notifyError();
                 func(null);
             });
     },
@@ -181,6 +181,10 @@ var getLocsFromInfo = function(info) {
         last_lon = lon;
     }
     return locs;
+};
+
+var notifyError = function() {
+    toastr.warning('Failed to get IP info, please try another IP info provider.');
 };
 
 $(function() {
