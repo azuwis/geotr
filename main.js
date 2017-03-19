@@ -284,7 +284,6 @@ $(function() {
                         table.rows.add(info).draw(false);
                         var locations = getLocsFromInfo(info);
                         map.SetLocations(locations, true);
-                        map_loaded = true;
                     }
                     NProgress.done();
                     $('.submit').prop('disabled', false);
