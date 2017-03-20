@@ -22,30 +22,56 @@ var getIPsFromInput = function(input) {
 var getInfoMulti = function(ips, url_func, map_func, method, callback_func) {
     var failed = false;
     var info = [];
+    var finish = function() {
+        if (ips.length == info.length) {
+            if (failed) {
+                notifyError();
+                callback_func(null);
+            } else {
+                info.sort(function(x, y) {
+                    return x.num - y.num;
+                });
+                callback_func(info);
+            }
+        }
+    };
     ips.forEach(function(elem, index) {
         $.get(url_func(elem), function(resp){
             NProgress.inc(0.05);
             var data = map_func(resp);
-            data['num'] = index + 1;
-            info.push(data);
-            if (ips.length == info.length) {
-                if (failed) {
-                    callback_func(null);
-                } else {
-                    info.sort(function(x, y) {
-                        return x['num'] - y['num'];
+            data.num = index + 1;
+            if (data.address) {
+                $.get('https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=' + data.address, function(resp) {
+                    var results = resp.results;
+                    if (results.length > 0) {
+                        var location = results[0].geometry.location;
+                        data.lat = location.lat;
+                        data.lon = location.lng;
+                    } else {
+                        data.lat = '';
+                        data.lon = '';
+                    }
+                    info.push(data);
+                    finish();
+                })
+                    .fail(function() {
+                        failed = true;
+                        info.push({});
+                        finish();
                     });
-                    callback_func(info);
+            } else {
+                if (data.address == '') {
+                    data.lat = '';
+                    data.lon = '';
                 }
+                info.push(data);
+                finish();
             }
         }, method)
             .fail(function() {
                 failed = true;
                 info.push({});
-                if (ips.length == info.length) {
-                    notifyError();
-                    callback_func(null);
-                }
+                finish();
             });
     });
 };
@@ -157,12 +183,51 @@ var getInfo = {
                          };
                      },
                      'json', func);
+    },
+    pconline: function(ips, func) {
+        getInfoMulti(ips,
+                     function(elem) {
+                         return 'https://whois.pconline.com.cn/ipJson.jsp?ip=' + elem + '&callback=?';
+                     },
+                     function(elem) {
+                         var country = '', region = '', city = '', isp = '', addr = '';
+                         var [x, y] = elem.addr.split(' ');
+                         if (elem.addr.indexOf('骨干') >= 0) {
+                             country = '中国';
+                             region = ' ';
+                             city = ' ';
+                             isp = elem.addr;
+                         } else if (x != '') {
+                             country = '中国';
+                             region = elem.pro;
+                             city = elem.city;
+                             addr = x;
+                             if (y != '') {
+                                 isp = y;
+                             }
+                         } else {
+                             country = y;
+                             region = ' ';
+                             city = ' ';
+                             addr = y;
+                         }
+                         return {
+                             num: elem.num,
+                             ip: elem.ip,
+                             country: country,
+                             region: region,
+                             city: city,
+                             isp: isp,
+                             address: addr
+                         };
+                     },
+                     'jsonp', func);
     }
 };
 
 var getLocsFromInfo = function(info) {
     var data = info.filter(function(elem) {
-        return elem.region != '' && elem.city != '';
+        return elem.region != '' && !!elem.lat && !!elem.lon;
     });
     var locs = [];
     var last_lat = 0, last_lon = 0;
