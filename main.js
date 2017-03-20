@@ -25,15 +25,16 @@ var getInfoMulti = function(ips, url_func, map_func, method, callback_func) {
     ips.forEach(function(elem, index) {
         $.get(url_func(elem), function(resp){
             NProgress.inc(0.05);
-            resp['num'] = index + 1;
-            info.push(resp);
+            var data = map_func(resp);
+            data['num'] = index + 1;
+            info.push(data);
             if (ips.length == info.length) {
                 if (failed) {
                     callback_func(null);
                 } else {
-                    info = info.sort(function(x, y) {
+                    info.sort(function(x, y) {
                         return x['num'] - y['num'];
-                    }).map(map_func);
+                    });
                     callback_func(info);
                 }
             }
