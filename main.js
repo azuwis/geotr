@@ -192,7 +192,7 @@ var getInfo = {
                      function(elem) {
                          var country = '', region = '', city = '', isp = '', addr = '';
                          var [x, y] = elem.addr.split(' ');
-                         if (elem.addr.indexOf('骨干') >= 0) {
+                         if (elem.addr.match(/(骨干|全国联通)/)) {
                              country = '中国';
                              region = ' ';
                              city = ' ';
