@@ -280,10 +280,7 @@ var viewOnMap = function(map, lat, lon) {
 };
 
 $(function() {
-    $.ajax({
-        url: 'advertisement.js',
-        dataType: 'script'
-    }).fail(function() {
+    $.getScript('advertisement.js').fail(function() {
         notifyAdblock();
     });
 
