@@ -300,6 +300,7 @@ $(function() {
         resetMap(map);
     });
 
+    $.fn.dataTable.ext.errMode = 'none';
     var table = $('#table').DataTable({
         info: false,
         paging: false,
@@ -314,6 +315,8 @@ $(function() {
             { data: 'lat' },
             { data: 'lon' }
         ]
+    }).on('error.dt', function(e, settings, techNote, message) {
+        console.log('DataTables: ', message);
     });
 
     var map = new Maplace({
