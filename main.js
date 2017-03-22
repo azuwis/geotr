@@ -51,6 +51,7 @@ var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
             var info = results.map(function(elem, index) {
                 var result = elem[0];
                 result.num = index + 1;
+                result.ip = ips[index];
                 return result;
             });
             callback_func(info);
@@ -110,8 +111,6 @@ var getInfo = {
                      function(elem) {
                          var [lat, lon] = elem.loc.split(',');
                          return {
-                             num: elem.num,
-                             ip: elem.ip,
                              country: elem.country,
                              region: elem.region,
                              city: elem.city,
@@ -129,8 +128,6 @@ var getInfo = {
                      },
                      function(elem) {
                          return {
-                             num: elem.num,
-                             ip: elem.ip,
                              country: elem.country_name,
                              region: elem.region_name,
                              city: elem.city,
@@ -157,8 +154,6 @@ var getInfo = {
                              city = elem_city.names.en;
                          }
                          return {
-                             num: elem.num,
-                             ip: elem.traits.ip_address,
                              country: elem.country.names.en,
                              region: region,
                              city: city,
@@ -197,8 +192,6 @@ var getInfo = {
                              addr = y;
                          }
                          return {
-                             num: elem.num,
-                             ip: elem.ip,
                              country: country,
                              region: region,
                              city: city,
