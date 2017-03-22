@@ -172,7 +172,7 @@ var getInfo = {
     pconline: function(ips, func) {
         getInfoMulti(ips,
                      function(elem) {
-                         return 'https://whois.pconline.com.cn/ipJson.jsp?ip=' + elem + '&callback=?';
+                         return '//whois.pconline.com.cn/ipJson.jsp?ip=' + elem + '&callback=?';
                      },
                      function(elem) {
                          var country = '', region = '', city = '', isp = '', addr = '';
