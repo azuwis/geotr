@@ -202,6 +202,25 @@ var getInfo = {
                          };
                      },
                      'jsonp', func);
+    },
+    sina: function(ips, func) {
+        getInfoMulti(ips,
+                     function(elem) {
+                         return '//int.dpool.sina.com.cn/iplookup/iplookup.php?format=js&ip=' + elem;
+                     },
+                     function(elem) {
+                         var address = remote_ip_info.country + ',' + remote_ip_info.province + ',' + remote_ip_info.city;
+                         return {
+                             country: remote_ip_info.country,
+                             region: remote_ip_info.province,
+                             city: remote_ip_info.city,
+                             isp: remote_ip_info.isp,
+                             lat: '',
+                             lon: '',
+                             address: address
+                         };
+                     },
+                     'script', func);
     }
 };
 
