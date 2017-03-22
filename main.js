@@ -19,60 +19,45 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
-var getInfoMulti = function(ips, url_func, map_func, method, callback_func) {
-    var failed = false;
-    var info = [];
-    var finish = function() {
-        if (ips.length == info.length) {
-            if (failed) {
-                notifyError();
-                callback_func(null);
-            } else {
-                info.sort(function(x, y) {
-                    return x.num - y.num;
-                });
-                callback_func(info);
-            }
-        }
-    };
-    ips.forEach(function(elem, index) {
-        $.get(url_func(elem), function(resp){
+var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
+    var requests = ips.map(function(elem) {
+        return $.ajax({
+            url: url_func(elem),
+            dataType: data_type
+            // cache: true,
+            // jsonpCallback: 'callback_' + elem.replace(/\./g, '_')
+        }).then(function(data) {
             NProgress.inc(0.05);
-            var data = map_func(resp);
-            data.num = index + 1;
-            if (data.address) {
-                $.get('https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=' + data.address, function(resp) {
-                    var results = resp.results;
-                    if (results.length > 0) {
-                        var location = results[0].geometry.location;
-                        data.lat = location.lat;
-                        data.lon = location.lng;
-                    } else {
-                        data.lat = '';
-                        data.lon = '';
-                    }
-                    info.push(data);
-                    finish();
-                })
-                    .fail(function() {
-                        failed = true;
-                        info.push({});
-                        finish();
+            data = map_func(data);
+            if(data.address) {
+                return $.get('https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=' + data.address)
+                    .then(function(geo, textStatus, jqXHR) {
+                        var results = geo.results;
+                        if (results.length > 0) {
+                            var location = results[0].geometry.location;
+                            data.lat = location.lat;
+                            data.lon = location.lng;
+                        }
+                        return [data, textStatus, jqXHR];
                     });
             } else {
-                if (data.address == '') {
-                    data.lat = '';
-                    data.lon = '';
-                }
-                info.push(data);
-                finish();
+                return arguments;
             }
-        }, method)
-            .fail(function() {
-                failed = true;
-                info.push({});
-                finish();
+        });
+    });
+    $.when.apply(undefined, requests).then(function() {
+        var results = Array.from(arguments);
+        if(results.every(function(elem) {return elem[1] == 'success';})) {
+            var info = results.map(function(elem, index) {
+                var result = elem[0];
+                result.num = index + 1;
+                return result;
             });
+            callback_func(info);
+        } else {
+            notifyError();
+            callback_func(null);
+        }
     });
 };
 
@@ -218,6 +203,8 @@ var getInfo = {
                              region: region,
                              city: city,
                              isp: isp,
+                             lat: '',
+                             lon: '',
                              address: addr
                          };
                      },
