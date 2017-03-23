@@ -45,7 +45,7 @@ var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
             }
         });
     });
-    $.when.apply(undefined, requests).then(function() {
+    $.when.apply(undefined, requests).done(function() {
         var results = Array.from(arguments);
         if(results.every(function(elem) {return elem[1] == 'success';})) {
             var info = results.map(function(elem, index) {
