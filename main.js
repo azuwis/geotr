@@ -1,3 +1,5 @@
+var google_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=';
+
 var getIPsFromInput = function(input) {
     var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
     var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
@@ -30,7 +32,7 @@ var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
             NProgress.inc(0.05);
             data = map_func(data);
             if(data.address) {
-                return $.get('https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=' + data.address)
+                return $.get(google_geocode_url + data.address)
                     .then(function(geo, textStatus, jqXHR) {
                         var results = geo.results;
                         if (results.length > 0) {
