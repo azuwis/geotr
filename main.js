@@ -49,18 +49,16 @@ var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
     });
     $.when.apply(undefined, requests).done(function() {
         var results = Array.from(arguments);
-        if(results.every(function(elem) {return elem[1] == 'success';})) {
-            var info = results.map(function(elem, index) {
-                var result = elem[0];
-                result.num = index + 1;
-                result.ip = ips[index];
-                return result;
-            });
-            callback_func(info);
-        } else {
-            notifyError();
-            callback_func(null);
-        }
+        var info = results.map(function(elem, index) {
+            var result = elem[0];
+            result.num = index + 1;
+            result.ip = ips[index];
+            return result;
+        });
+        callback_func(info);
+    }).fail(function() {
+        notifyError();
+        callback_func(null);
     });
 };
 
