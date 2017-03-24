@@ -323,7 +323,7 @@ var viewOnMap = function(map, lat, lon) {
 };
 
 $(function() {
-    $.getScript('advertisement.js').fail(function() {
+    $.getScript('js/advertisement.js').fail(function() {
         notifyAdblock();
     });
 
