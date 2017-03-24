@@ -21,16 +21,11 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
-var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
-    var requests = ips.map(function(elem) {
-        return $.ajax({
-            url: url_func(elem),
-            dataType: data_type
-            // cache: true,
-            // jsonpCallback: 'callback_' + elem.replace(/\./g, '_')
-        }).then(function(data) {
+var getInfoMulti = function(arg) {
+    var requests = arg.ips.map(function(elem) {
+        return arg.deferred_func(elem).then(function(data) {
             NProgress.inc(0.05);
-            data = map_func(data);
+            data = arg.map_func(data);
             if(data.address) {
                 return $.get(google_geocode_url + data.address)
                     .then(function(geo, textStatus, jqXHR) {
@@ -52,13 +47,13 @@ var getInfoMulti = function(ips, url_func, map_func, data_type, callback_func) {
         var info = results.map(function(elem, index) {
             var result = elem[0];
             result.num = index + 1;
-            result.ip = ips[index];
+            result.ip = arg.ips[index];
             return result;
         });
-        callback_func(info);
+        arg.callback_func(info);
     }).fail(function() {
         notifyError();
-        callback_func(null);
+        arg.callback_func(null);
     });
 };
 
@@ -104,104 +99,126 @@ var getInfo = {
             });
     },
     ipinfo: function(ips, func) {
-        getInfoMulti(ips,
-                     function(elem) {
-                         return '//ipinfo.io/' + elem + '/?callback=?';
-                     },
-                     function(elem) {
-                         var [lat, lon] = elem.loc.split(',');
-                         return {
-                             country: elem.country,
-                             region: elem.region,
-                             city: elem.city,
-                             isp: '',
-                             lat: lat,
-                             lon: lon
-                         };
-                     },
-                     'jsonp', func);
+        getInfoMulti({
+            ips: ips,
+            deferred_func: function(ip) {
+                return $.ajax({
+                    url: '//ipinfo.io/' + ip,
+                    dataType: 'jsonp'
+                });
+            },
+            map_func: function(info) {
+                var [lat, lon] = info.loc.split(',');
+                return {
+                    country: info.country,
+                    region: info.region,
+                    city: info.city,
+                    isp: '',
+                    lat: lat,
+                    lon: lon
+                };
+            },
+            callback_func: func
+        });
     },
     freegeoip: function(ips, func) {
-        getInfoMulti(ips,
-                     function(elem) {
-                         return '//freegeoip.net/json/' + elem + '?callback=?';
-                     },
-                     function(elem) {
-                         return {
-                             country: elem.country_name,
-                             region: elem.region_name,
-                             city: elem.city,
-                             isp: '',
-                             lat: elem.latitude,
-                             lon: elem.longitude
-                         };
-                     },
-                     'jsonp', func);
+        getInfoMulti({
+            ips: ips,
+            deferred_func: function(ip) {
+                return $.ajax({
+                    url: '//freegeoip.net/json/' + ip,
+                    dataType: 'jsonp'
+                    // cache: true,
+                    // jsonpCallback: 'callback_' + ip.replace(/\./g, '_')
+                });
+            },
+            map_func: function(info) {
+                return {
+                    country: info.country_name,
+                    region: info.region_name,
+                    city: info.city,
+                    isp: '',
+                    lat: info.latitude,
+                    lon: info.longitude
+                };
+            },
+            callback_func: func
+        });
     },
     nekudo: function(ips, func) {
-        getInfoMulti(ips,
-                     function(elem) {
-                         return '//geoip.nekudo.com/api/' + elem + '/full';
-                     },
-                     function(elem) {
-                         var region = '', city = '';
-                         var subdivisions = elem.subdivisions;
-                         if (subdivisions) {
-                             region = subdivisions[0].names.en;
-                         }
-                         var elem_city = elem.city;
-                         if (elem_city) {
-                             city = elem_city.names.en;
-                         }
-                         return {
-                             country: elem.country.names.en,
-                             region: region,
-                             city: city,
-                             isp: '',
-                             lat: elem.location.latitude,
-                             lon: elem.location.longitude
-                         };
-                     },
-                     'json', func);
+        getInfoMulti({
+            ips: ips,
+            deferred_func: function(ip) {
+                return $.ajax({
+                    url: '//geoip.nekudo.com/api/' + ip + '/full',
+                    dataType: 'json'
+                });
+            },
+            map_func: function(info) {
+                var region = '', city = '';
+                var subdivisions = info.subdivisions;
+                if (subdivisions) {
+                    region = subdivisions[0].names.en;
+                }
+                var info_city = info.city;
+                if (info_city) {
+                    city = info_city.names.en;
+                }
+                return {
+                    country: info.country.names.en,
+                    region: region,
+                    city: city,
+                    isp: '',
+                    lat: info.location.latitude,
+                    lon: info.location.longitude
+                };
+            },
+            callback_func: func
+        });
     },
     pconline: function(ips, func) {
-        getInfoMulti(ips,
-                     function(elem) {
-                         return '//whois.pconline.com.cn/ipJson.jsp?ip=' + elem + '&callback=?';
-                     },
-                     function(elem) {
-                         var country = '', region = '', city = '', isp = '', addr = '';
-                         var [x, y] = elem.addr.split(' ');
-                         if (elem.addr.match(/(骨干|全国联通)/)) {
-                             country = '中国';
-                             region = ' ';
-                             city = ' ';
-                             isp = elem.addr;
-                         } else if (x != '') {
-                             country = '中国';
-                             region = elem.pro;
-                             city = elem.city;
-                             addr = x;
-                             if (y != '') {
-                                 isp = y;
-                             }
-                         } else {
-                             country = y;
-                             region = ' ';
-                             city = ' ';
-                             addr = y;
-                         }
-                         return {
-                             country: country,
-                             region: region,
-                             city: city,
-                             isp: isp,
-                             lat: '',
-                             lon: '',
-                             address: addr
-                         };
-                     },
-                     'jsonp', func);
+        getInfoMulti({
+            ips: ips,
+            deferred_func: function(ip) {
+                return $.ajax({
+                    url: '//whois.pconline.com.cn/ipJson.jsp?ip=' + ip,
+                    dataType: 'jsonp'
+                });
+            },
+            map_func: function(info) {
+                var country = '', region = '', city = '', isp = '', addr = '';
+                var [x, y] = info.addr.split(' ');
+                if (info.addr.match(/(骨干|全国联通)/)) {
+                    country = '中国';
+                    region = ' ';
+                    city = ' ';
+                    isp = info.addr;
+                } else if (x != '') {
+                    country = '中国';
+                    region = info.pro;
+                    city = info.city;
+                    addr = x;
+                    if (y != '') {
+                        isp = y;
+                    }
+                } else {
+                    country = y;
+                    region = ' ';
+                    city = ' ';
+                    addr = y;
+                }
+                return {
+                    country: country,
+                    region: region,
+                    city: city,
+                    isp: isp,
+                    lat: '',
+                    lon: '',
+                    address: addr
+                };
+            },
+            callback_func: func
+        });
     },
     sina: function(ips, func) {
         getInfoMulti(ips,
