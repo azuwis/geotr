@@ -221,23 +221,26 @@ var getInfo = {
         });
     },
     sina: function(ips, func) {
-        getInfoMulti(ips,
-                     function(elem) {
-                         return '//int.dpool.sina.com.cn/iplookup/iplookup.php?format=js&ip=' + elem;
-                     },
-                     function(elem) {
-                         var address = remote_ip_info.country + ',' + remote_ip_info.province + ',' + remote_ip_info.city;
-                         return {
-                             country: remote_ip_info.country,
-                             region: remote_ip_info.province,
-                             city: remote_ip_info.city,
-                             isp: remote_ip_info.isp,
-                             lat: '',
-                             lon: '',
-                             address: address
-                         };
-                     },
-                     'script', func);
+        sina.init();
+        getInfoMulti({
+            ips: ips,
+            deferred_func: function(ip) {
+                return sina.getInfo(ip);
+            },
+            map_func: function(info) {
+                var address = info.country + ',' + info.province + ',' + info.city;
+                return {
+                    country: info.country,
+                    region: info.province,
+                    city: info.city,
+                    isp: info.isp,
+                    lat: '',
+                    lon: '',
+                    address: address
+                };
+            },
+            callback_func: func
+        });
     }
 };
 
@@ -281,6 +284,30 @@ var resetMap = function(map) {
                 lon: -180,
                 zoom: 2
             }]});
+    }
+};
+
+var sina = {
+    id: 0,
+    deferreds: {},
+    callback: function(id, ip, info) {
+        if (info) {
+            this.deferreds[id].resolve(info);
+        } else {
+            this.deferreds[id].reject(info);
+        }
+        $('iframe#sina-' + id).remove();
+    },
+    getInfo: function(ip) {
+        var iframe = $('<iframe id="sina-' + this.id + '" src="iframe/sina.html?' + this.id + '-' + ip + '" style="display: none;"></iframe>');
+        $('body').append(iframe);
+        var deferred =  $.Deferred();
+        this.deferreds[this.id] = deferred;
+        this.id++;
+        return deferred.promise();
+    },
+    init: function() {
+        this.deferreds = {};
     }
 };
 
