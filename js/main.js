@@ -104,7 +104,7 @@ var getInfo = {
             deferred_func: function(ip) {
                 return $.ajax({
                     url: '//ipinfo.io/' + ip,
-                    dataType: 'jsonp'
+                    dataType: 'json'
                 });
             },
             map_func: function(info) {
