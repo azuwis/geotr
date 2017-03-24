@@ -186,12 +186,10 @@ var getInfo = {
                 });
             },
             map_func: function(info) {
-                var country = '', region = '', city = '', isp = '', addr = '';
+                var country = '', region = '', city = '', isp = '', addr = '', marker;
                 var [x, y] = info.addr.split(' ');
                 if (info.addr.match(/(骨干|全国联通)/)) {
                     country = '中国';
-                    region = ' ';
-                    city = ' ';
                     isp = info.addr;
                 } else if (x != '') {
                     country = '中国';
@@ -203,8 +201,7 @@ var getInfo = {
                     }
                 } else {
                     country = y;
-                    region = ' ';
-                    city = ' ';
+                    marker = true;
                     addr = y;
                 }
                 return {
@@ -214,7 +211,8 @@ var getInfo = {
                     isp: isp,
                     lat: '',
                     lon: '',
-                    address: addr
+                    address: addr,
+                    marker: marker
                 };
             },
             callback_func: func
@@ -229,6 +227,10 @@ var getInfo = {
             },
             map_func: function(info) {
                 var address = info.country + ',' + info.province + ',' + info.city;
+                var marker;
+                if (info.country != '中国') {
+                    marker = true;
+                }
                 return {
                     country: info.country,
                     region: info.province,
@@ -236,7 +238,8 @@ var getInfo = {
                     isp: info.isp,
                     lat: '',
                     lon: '',
-                    address: address
+                    address: address,
+                    marker: marker
                 };
             },
             callback_func: func
@@ -246,7 +249,11 @@ var getInfo = {
 
 var getLocsFromInfo = function(info) {
     var data = info.filter(function(elem) {
-        return elem.region != '' && !!elem.lat && !!elem.lon;
+        if (elem.marker != undefined) {
+            return elem.marker;
+        } else {
+            return elem.region && !!elem.lat && !!elem.lon;
+        }
     });
     var locs = [];
     var last_lat = 0, last_lon = 0;
