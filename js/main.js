@@ -306,7 +306,7 @@ var sina = {
         $('iframe#sina-' + id).remove();
     },
     getInfo: function(ip) {
-        var iframe = $('<iframe id="sina-' + this.id + '" src="iframe/sina.html?' + this.id + '-' + ip + '" style="display: none;"></iframe>');
+        var iframe = $('<iframe id="sina-' + this.id + '" src="iframe/sina.html#' + this.id + '-' + ip + '" style="display: none;"></iframe>');
         $('body').append(iframe);
         var deferred =  $.Deferred();
         this.deferreds[this.id] = deferred;

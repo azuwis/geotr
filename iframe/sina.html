@@ -20,7 +20,7 @@
                  document.getElementsByTagName('head')[0].appendChild(script);
              }
          };
-         var query = window.location.href.split('?');
+         var query = window.location.href.split('#');
          var [id, ip] = query[query.length - 1].split('-');
          JavaScript.load('//int.dpool.sina.com.cn/iplookup/iplookup.php?format=js&ip=' + ip, function() {
              window.parent.sina.callback(id, ip, window.remote_ip_info);
