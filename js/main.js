@@ -385,7 +385,7 @@ $(function() {
                         $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
                         // $('#submit').prop('disabled', false);
                     }).fail(function() {
-                        toastr.warning('Failed to get IP info from ' + value);
+                        toastr.warning(value.toUpperCase() + ': Failed to get IP info.');
                     }).always(function() {
                         tab.css({opacity: 1});
                     });
