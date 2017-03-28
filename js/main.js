@@ -300,6 +300,7 @@ $(function() {
 
     $('#clear').click(function() {
         $('#traceroute').val('');
+        $('table').DataTable().clear().draw(false);
         resetMap(map);
     });
 
