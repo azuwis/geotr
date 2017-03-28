@@ -21,51 +21,45 @@ var getIPsFromInput = function(input) {
     return ips;
 };
 
-var getInfoMulti = function(arg) {
-    var requests = arg.ips.map(function(elem) {
-        return arg.deferred_func(elem).then(function(data) {
-            NProgress.inc(0.05);
-            data = arg.map_func(data);
+var getInfoMulti = function(ips, func) {
+    var requests = ips.map(function(ip) {
+        return func(ip).then(function(data) {
             if(data.address) {
                 return $.get(google_geocode_url + data.address)
-                    .then(function(geo, textStatus, jqXHR) {
+                    .then(function(geo) {
                         var results = geo.results;
                         if (results.length > 0) {
                             var location = results[0].geometry.location;
                             data.lat = location.lat;
                             data.lon = location.lng;
                         }
-                        return [data, textStatus, jqXHR];
+                        return data;
                     });
             } else {
-                return arguments;
+                return data;
             }
         });
     });
-    $.when.apply(undefined, requests).done(function() {
-        var results = Array.from(arguments);
-        var info = results.map(function(elem, index) {
-            var result = elem[0];
-            result.num = index + 1;
-            result.ip = arg.ips[index];
-            return result;
+    return $.when.apply(undefined, requests).then(function() {
+        return Array.from(arguments).map(function(data, index) {
+            data.num = index + 1;
+            data.ip = ips[index];
+            return data;
         });
-        arg.callback_func(info);
-    }).fail(function() {
-        notifyError();
-        arg.callback_func(null);
     });
 };
 
 var getInfo = {
-    ipapi: function(ips, func) {
-        var post_data = ips.map(function(elem) {
-            return {query: elem};
-        });
-        var info = [];
-        NProgress.set(0.5);
-        $.post('//ip-api.com/batch', JSON.stringify(post_data), function(resp) {
-            info = resp.map(function(elem, index) {
+    ipapi: function(ips) {
+        return $.ajax({
+            type: 'POST',
+            url: '//ip-api.com/batch',
+            data: JSON.stringify(ips.map(function(elem) {
+                return {query: elem};
+            })),
+            dataType: 'json'
+        }).then(function(data) {
+            return data.map(function(elem, index) {
                 var region = '', city = '', isp = '';
                 if (elem.isp.match(/(backbone|cnc group)/i)) {
                     region = '';
@@ -91,110 +85,86 @@ var getInfo = {
                     lon: elem.lon
                 };
             });
-            func(info);
-        }, 'json')
-            .fail(function() {
-                notifyError();
-                func(null);
-            });
+        });
     },
-    ipinfo: function(ips, func) {
-        getInfoMulti({
-            ips: ips,
-            deferred_func: function(ip) {
-                return $.ajax({
-                    url: '//ipinfo.io/' + ip,
-                    dataType: 'json'
-                });
-            },
-            map_func: function(info) {
-                var [lat, lon] = info.loc.split(',');
+    ipinfo: function(ips) {
+        return getInfoMulti(ips, function(ip) {
+            return $.ajax({
+                url: '//ipinfo.io/' + ip,
+                dataType: 'json'
+            }).then(function(data) {
+                var [lat, lon] = data.loc.split(',');
                 return {
-                    country: info.country,
-                    region: info.region,
-                    city: info.city,
+                    country: data.country,
+                    region: data.region,
+                    city: data.city,
                     isp: '',
                     lat: lat,
                     lon: lon
                 };
-            },
-            callback_func: func
+            });
         });
     },
-    freegeoip: function(ips, func) {
-        getInfoMulti({
-            ips: ips,
-            deferred_func: function(ip) {
-                return $.ajax({
-                    url: '//freegeoip.net/json/' + ip,
-                    dataType: 'jsonp'
-                    // cache: true,
-                    // jsonpCallback: 'callback_' + ip.replace(/\./g, '_')
-                });
-            },
-            map_func: function(info) {
+    freegeoip: function(ips) {
+        return getInfoMulti(ips, function(ip) {
+            return $.ajax({
+                url: '//freegeoip.net/json/' + ip,
+                dataType: 'jsonp'
+                // cache: true,
+                // jsonpCallback: 'callback_' + ip.replace(/\./g, '_')
+            }).then(function(data) {
                 return {
-                    country: info.country_name,
-                    region: info.region_name,
-                    city: info.city,
+                    country: data.country_name,
+                    region: data.region_name,
+                    city: data.city,
                     isp: '',
-                    lat: info.latitude,
-                    lon: info.longitude
+                    lat: data.latitude,
+                    lon: data.longitude
                 };
-            },
-            callback_func: func
+            });
         });
     },
-    nekudo: function(ips, func) {
-        getInfoMulti({
-            ips: ips,
-            deferred_func: function(ip) {
-                return $.ajax({
-                    url: '//geoip.nekudo.com/api/' + ip + '/full',
-                    dataType: 'json'
-                });
-            },
-            map_func: function(info) {
+    nekudo: function(ips) {
+        return getInfoMulti(ips, function(ip) {
+            return $.ajax({
+                url: '//geoip.nekudo.com/api/' + ip + '/full',
+                dataType: 'json'
+            }).then(function(data) {
                 var region = '', city = '';
-                var subdivisions = info.subdivisions;
+                var subdivisions = data.subdivisions;
                 if (subdivisions) {
                     region = subdivisions[0].names.en;
                 }
-                var info_city = info.city;
-                if (info_city) {
-                    city = info_city.names.en;
+                var data_city = data.city;
+                if (data_city) {
+                    city = data_city.names.en;
                 }
                 return {
-                    country: info.country.names.en,
+                    country: data.country.names.en,
                     region: region,
                     city: city,
                     isp: '',
-                    lat: info.location.latitude,
-                    lon: info.location.longitude
+                    lat: data.location.latitude,
+                    lon: data.location.longitude
                 };
-            },
-            callback_func: func
+            });
         });
     },
-    pconline: function(ips, func) {
-        getInfoMulti({
-            ips: ips,
-            deferred_func: function(ip) {
-                return $.ajax({
-                    url: '//whois.pconline.com.cn/ipJson.jsp?ip=' + ip,
-                    dataType: 'jsonp'
-                });
-            },
-            map_func: function(info) {
+    pconline: function(ips) {
+        return getInfoMulti(ips, function(ip) {
+            return $.ajax({
+                url: '//whois.pconline.com.cn/ipJson.jsp?ip=' + ip,
+                dataType: 'jsonp'
+            }).then(function(data) {
                 var country = '', region = '', city = '', isp = '', addr = '', marker;
-                var [x, y] = info.addr.split(' ');
-                if (info.addr.match(/(骨干|全国联通)/)) {
+                var [x, y] = data.addr.split(' ');
+                if (data.addr.match(/(骨干|全国联通)/)) {
                     country = '中国';
-                    isp = info.addr;
+                    isp = data.addr;
                 } else if (x != '') {
                     country = '中国';
-                    region = info.pro;
-                    city = info.city;
+                    region = data.pro;
+                    city = data.city;
                     addr = x;
                     if (y != '') {
                         isp = y;
@@ -214,35 +184,29 @@ var getInfo = {
                     address: addr,
                     marker: marker
                 };
-            },
-            callback_func: func
+            });
         });
     },
-    sina: function(ips, func) {
+    sina: function(ips) {
         sina.init();
-        getInfoMulti({
-            ips: ips,
-            deferred_func: function(ip) {
-                return sina.getInfo(ip);
-            },
-            map_func: function(info) {
-                var address = info.country + ',' + info.province + ',' + info.city;
+        return getInfoMulti(ips, function(ip) {
+            return sina.getInfo(ip).then(function(data) {
+                var address = data.country + ',' + data.province + ',' + data.city;
                 var marker;
-                if (info.country != '中国') {
+                if (data.country != '中国') {
                     marker = true;
                 }
                 return {
-                    country: info.country,
-                    region: info.province,
-                    city: info.city,
-                    isp: info.isp,
+                    country: data.country,
+                    region: data.province,
+                    city: data.city,
+                    isp: data.isp,
                     lat: '',
                     lon: '',
                     address: address,
                     marker: marker
                 };
-            },
-            callback_func: func
+            });
         });
     }
 };
@@ -273,14 +237,6 @@ var getLocsFromInfo = function(info) {
         last_lon = lon;
     }
     return locs;
-};
-
-var notifyAdblock = function() {
-    toastr.warning('Please disable adblock on this page to make IP info APIs work.', '', {timeOut: 0});
-};
-
-var notifyError = function() {
-    toastr.warning('Failed to get IP info, please try another IP info provider.');
 };
 
 var resetMap = function(map) {
@@ -331,7 +287,7 @@ var viewOnMap = function(map, lat, lon) {
 
 $(function() {
     $.getScript('js/advertisement.js').fail(function() {
-        notifyAdblock();
+        toastr.warning('Please disable adblock on this page to make IP info APIs work.', '', {timeOut: 0});
     });
 
     if (location.protocol == 'https:') {
@@ -348,7 +304,7 @@ $(function() {
     });
 
     $.fn.dataTable.ext.errMode = 'none';
-    var table = $('#table').DataTable({
+    $('table').DataTable({
         info: false,
         paging: false,
         searching: false,
@@ -383,34 +339,68 @@ $(function() {
         }
     }).Load();
 
-    $('.submit').click(function(event) {
+    $('input:radio[name=geotr-api]').click(function() {
+        var radio = $(this);
+        var value = radio.val();
+        $('input:checkbox.geotr-api').each(function() {
+            var checkbox = $(this);
+            var should_check = false;
+            if (value == 'all' || value == 'none') {
+                should_check = value == 'all';
+            } else if (value == 'recommend') {
+                should_check = checkbox.hasClass('geotr-api-recommend');
+            }
+            checkbox.prop('checked', should_check);
+        });
+    });
+
+    $('#submit').click(function(event) {
         event.preventDefault();
-        table.clear().draw(false);
+        $('table').DataTable().clear().draw(false);
         resetMap(map);
-        var id = $(this).attr('id');
         var input = $('#traceroute').val();
         var ips = getIPsFromInput(input);
+        var tabActive = false;
         if (ips.length > 0) {
-            NProgress.start();
-            $('.submit').prop('disabled', true);
-            var func = getInfo[id];
-            if (typeof func == 'function') {
-                func(ips, function(info) {
-                    if (info) {
-                        table.rows.add(info).draw(false);
-                        var locations = getLocsFromInfo(info);
-                        map.SetLocations(locations, true);
-                    }
-                    NProgress.done();
-                    $('.submit').prop('disabled', false);
-                });
-            }
+            $('input:checkbox.geotr-api').each(function() {
+                var checkbox = $(this);
+                var value = checkbox.val();
+                // NProgress.start();
+                // $('#submit').prop('disabled', true);
+                if (checkbox.prop('checked')) {
+                    $('#tab-' + value).show();
+                    var func = getInfo[value];
+                    func(ips).done(function(info) {
+                        if (!tabActive) {
+                            mui.tabs.activate('pane-' + value);
+                            tabActive = true;
+                            var locations = getLocsFromInfo(info);
+                            map.SetLocations(locations, true);
+                        }
+                        $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
+                        // $('#submit').prop('disabled', false);
+                    }).fail(function() {
+                        toastr.warning('Failed to get IP info from ' + value);
+                    });
+                } else {
+                    $('#tab-' + value).hide();
+                }
+            });
         } else {
-            toastr.info('Paste the output of "traceroute -n IP" in the form and submit.');
+            toastr.warning('Paste the output of "traceroute -n IP" in the form and submit.');
         }
     });
 
-    $('#table tbody').on('click', 'tr', function() {
+    $('#geotr-tabs li').click(function() {
+        var tab = $(this);
+        var table = $(tab.attr('id').replace('tab-', '#pane-') + ' table').DataTable();
+        var info = table.rows().data();
+        var locations = getLocsFromInfo(info);
+        map.SetLocations(locations, true);
+    });
+
+    $('table tbody').on('click', 'tr', function() {
+        var table = $(this).closest('table').DataTable();
         var data = table.row(this).data();
         viewOnMap(map, data.lat, data.lon);
     });

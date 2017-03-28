@@ -11,7 +11,7 @@
         <style type="text/css">
          #gmap {
              width: 100%;
-             height: 70vh;
+             height: 68vh;
          }
          .mui-table>tbody>tr>td {
              line-height: 1.0;
@@ -29,34 +29,156 @@
                         <div id="form">
                             <form id="input" class="mui-form">
                                 <div class="mui-textfield">
-                                    <textarea id="traceroute" name="traceroute" rows="5">Paste the output of "traceroute -n IP" here, click one the following IP info providers.</textarea>
+                                    <textarea id="traceroute" name="traceroute" rows="5">Paste the output of "traceroute -n IP" here, choose IP info providers, and submit.</textarea>
                                 </div>
-                                <button type="button" id="ipapi" class="submit no-https mui-btn mui-btn--raised mui-btn--small">ipapi</button>
-                                <button type="button" id="freegeoip" class="submit mui-btn mui-btn--raised mui-btn--small">freegeoip</button>
-                                <button type="button" id="ipinfo" class="submit mui-btn mui-btn--raised mui-btn--small">ipinfo</button>
-                                <button type="button" id="nekudo" class="submit mui-btn mui-btn--raised mui-btn--small">nekudo</button>
-                                <button type="button" id="pconline" class="submit mui-btn mui-btn--raised mui-btn--small">pconline</button>
-                                <button type="button" id="sina" class="submit no-https mui-btn mui-btn--raised mui-btn--small">sina</button>
-                                <button type="button" id="clear" class="mui-btn mui-btn--raised mui-btn--small">Clear</button>
+                                <div class="mui-row">
+                                    <div class="mui-col-md-4">
+                                        <button type="button" id="submit" class="mui-btn mui-btn--raised mui-btn--small">Submit</button>
+                                        <button type="button" id="clear" class="mui-btn mui-btn--raised mui-btn--small">Clear</button>
+                                    </div>
+                                    <div class="mui-col-md-8">
+                                        <div class="mui-checkbox">
+                                            <label>
+                                                <input type="checkbox" class="geotr-api" value="ipapi">IPAPI
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="freegeoip">FREEGEOIP
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api" value="ipinfo">IPINFO
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api" value="nekudo">NEKUDO
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="pconline">PCONLINE
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api" value="sina">SINA
+                                            </label>
+                                        </div>
+                                        <div class="mui-radio">
+                                            <label>
+                                                <input type="radio" name="geotr-api" value="recommend" checked="checked">Recommend
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="geotr-api" value="all">All
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="geotr-api" value="none">None
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
                 <div class="mui-col-md-6">
-                    <table id="table" class="mui-table mui-table--bordered">
-                        <thead>
-                            <tr>
-                                <th>Num</th>
-                                <th>IP</th>
-                                <th>Country</th>
-                                <th>Region</th>
-                                <th>City</th>
-                                <th>ISP</th>
-                                <th>Lat</th>
-                                <th>Lon</th>
-                            </tr>
-                        </thead>
-                    </table>
+                    <ul id="geotr-tabs" class="mui-tabs__bar">
+                        <li class="mui--is-active" id="tab-ipapi"><a data-mui-toggle="tab" data-mui-controls="pane-ipapi">ipapi</a></li>
+                        <li id="tab-freegeoip"><a data-mui-toggle="tab" data-mui-controls="pane-freegeoip">freegeoip</a></li>
+                        <li id="tab-ipinfo"><a data-mui-toggle="tab" data-mui-controls="pane-ipinfo">ipinfo</a></li>
+                        <li id="tab-nekudo"><a data-mui-toggle="tab" data-mui-controls="pane-nekudo">nekudo</a></li>
+                        <li id="tab-pconline"><a data-mui-toggle="tab" data-mui-controls="pane-pconline">pconline</a></li>
+                        <li id="tab-sina"><a data-mui-toggle="tab" data-mui-controls="pane-sina">sina</a></li>
+                    </ul>
+                    <div class="mui-tabs__pane mui--is-active" id="pane-ipapi">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-freegeoip">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-ipinfo">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-nekudo">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-pconline">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-sina">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
