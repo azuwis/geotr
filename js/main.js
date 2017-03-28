@@ -230,7 +230,7 @@ var getLocsFromInfo = function(info) {
                 // label: String(elem[0]),
                 lat: lat,
                 lon: lon,
-                html: elem.country + ', ' + elem.region + ', ' + elem.city
+                html: [elem.country, elem.region, elem.city].filter(function(elem) {return elem;}).join(', ')
             });
         }
         last_lat = lat;
