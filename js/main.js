@@ -291,7 +291,8 @@ $(function() {
     });
 
     if (location.protocol == 'https:') {
-        $('.no-https').closest('label').remove();
+        $('label.geotr-api-no-https').remove();
+        $('li.geotr-api-no-https').hide();
     }
 
     $('#traceroute').one('focus', function() {

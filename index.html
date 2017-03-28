@@ -38,8 +38,8 @@
                                     </div>
                                     <div class="mui-col-md-8">
                                         <div class="mui-checkbox">
-                                            <label>
-                                                <input type="checkbox" class="geotr-api geotr-api-recommend no-https" checked="checked" value="ipapi">IPAPI
+                                            <label class="geotr-api-no-https">
+                                                <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="ipapi">IPAPI
                                             </label>
                                             <label>
                                                 <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="freegeoip">FREEGEOIP
@@ -53,8 +53,8 @@
                                             <label>
                                                 <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="pconline">PCONLINE
                                             </label>
-                                            <label>
-                                                <input type="checkbox" class="geotr-api geotr-api-recommend no-https" checked="checked" value="sina">SINA
+                                            <label class="geotr-api-no-https">
+                                                <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="sina">SINA
                                             </label>
                                         </div>
                                         <div class="mui-radio">
@@ -76,12 +76,12 @@
                 </div>
                 <div class="mui-col-md-6">
                     <ul id="geotr-tabs" class="mui-tabs__bar">
-                        <li class="mui--is-active" id="tab-ipapi"><a data-mui-toggle="tab" data-mui-controls="pane-ipapi">ipapi</a></li>
+                        <li class="mui--is-active geotr-api-no-https" id="tab-ipapi"><a data-mui-toggle="tab" data-mui-controls="pane-ipapi">ipapi</a></li>
                         <li id="tab-freegeoip"><a data-mui-toggle="tab" data-mui-controls="pane-freegeoip">freegeoip</a></li>
                         <li id="tab-ipinfo"><a data-mui-toggle="tab" data-mui-controls="pane-ipinfo">ipinfo</a></li>
                         <li id="tab-nekudo"><a data-mui-toggle="tab" data-mui-controls="pane-nekudo">nekudo</a></li>
                         <li id="tab-pconline"><a data-mui-toggle="tab" data-mui-controls="pane-pconline">pconline</a></li>
-                        <li id="tab-sina"><a data-mui-toggle="tab" data-mui-controls="pane-sina">sina</a></li>
+                        <li id="tab-sina" class="geotr-api-no-https"><a data-mui-toggle="tab" data-mui-controls="pane-sina">sina</a></li>
                     </ul>
                     <div class="mui-tabs__pane mui--is-active" id="pane-ipapi">
                         <table class="mui-table mui-table--bordered">
