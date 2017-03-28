@@ -366,32 +366,32 @@ $(function() {
         var ips = getIPsFromInput(input);
         var tabActive = false;
         if (ips.length > 0) {
-            $('input:checkbox.geotr-api').each(function() {
+            $('#submit').prop('disabled', true);
+            var requests = $('input:checkbox.geotr-api:checked').map(function() {
                 var checkbox = $(this);
                 var value = checkbox.val();
-                // NProgress.start();
-                // $('#submit').prop('disabled', true);
-                if (checkbox.prop('checked')) {
-                    var tab = $('#tab-' + value);
-                    tab.show().css({opacity: 0.3});
-                    var func = getInfo[value];
-                    func(ips).done(function(info) {
-                        if (!tabActive) {
-                            mui.tabs.activate('pane-' + value);
-                            tabActive = true;
-                            var locations = getLocsFromInfo(info);
-                            map.SetLocations(locations, true);
-                        }
-                        $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
-                        // $('#submit').prop('disabled', false);
-                    }).fail(function() {
-                        toastr.warning(value.toUpperCase() + ': Failed to get IP info.');
-                    }).always(function() {
-                        tab.css({opacity: 1});
-                    });
-                } else {
-                    $('#tab-' + value).hide();
-                }
+                var tab = $('#tab-' + value);
+                tab.show().css({opacity: 0.3});
+                var func = getInfo[value];
+                return func(ips).done(function(info) {
+                    if (!tabActive) {
+                        mui.tabs.activate('pane-' + value);
+                        tabActive = true;
+                        var locations = getLocsFromInfo(info);
+                        map.SetLocations(locations, true);
+                    }
+                    $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
+                }).fail(function() {
+                    toastr.warning(value.toUpperCase() + ': Failed to get IP info.');
+                }).always(function() {
+                    tab.css({opacity: 1});
+                });
+            });
+            $.when.apply(undefined, requests).done(function() {
+                $('#submit').prop('disabled', false);
+            });
+            $('input:checkbox.geotr-api:not(:checked)').each(function() {
+                $('#tab-' + $(this).val()).hide();
             });
         } else {
             toastr.warning('Paste the output of "traceroute -n IP" in the form and submit.');
