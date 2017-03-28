@@ -367,7 +367,7 @@ $(function() {
         var ips = getIPsFromInput(input);
         var tabActive = false;
         if (ips.length > 0) {
-            $('#submit').prop('disabled', true);
+            $('#submit, #clear').prop('disabled', true);
             var requests = $('input:checkbox.geotr-api:checked').map(function() {
                 var checkbox = $(this);
                 var value = checkbox.val();
@@ -389,7 +389,7 @@ $(function() {
                 });
             });
             $.when.apply(undefined, requests).done(function() {
-                $('#submit').prop('disabled', false);
+                $('#submit, #clear').prop('disabled', false);
             });
             $('input:checkbox.geotr-api:not(:checked)').each(function() {
                 $('#tab-' + $(this).val()).hide();
