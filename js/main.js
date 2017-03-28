@@ -411,6 +411,12 @@ $(function() {
         }
     });
 
+    $('#traceroute').keydown(function(e) {
+        if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey) {
+            $('#submit').click();
+        }
+    });
+
     $('#geotr-tabs li').click(function() {
         var tab = $(this);
         var table = $(tab.attr('id').replace('tab-', '#pane-') + ' table').DataTable();
