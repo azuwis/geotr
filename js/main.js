@@ -344,6 +344,14 @@ $(function() {
         }
     }).Load();
 
+    $('input:checkbox.geotr-api').each(function() {
+        var cookies = Cookies.get();
+        if (!$.isEmptyObject(cookies)) {
+            var checkbox = $(this);
+            checkbox.prop('checked', !!cookies[checkbox.val()]);
+        }
+    });
+
     $('input:radio[name=geotr-api]').click(function() {
         var radio = $(this);
         var value = radio.val();
@@ -373,6 +381,7 @@ $(function() {
                 var value = checkbox.val();
                 var tab = $('#tab-' + value);
                 tab.show().css({opacity: 0.3});
+                Cookies.set(value, 1, {expires: 30});
                 var func = getInfo[value];
                 return func(ips).done(function(info) {
                     if (!tabActive) {
@@ -392,7 +401,9 @@ $(function() {
                 $('#submit, #clear').prop('disabled', false);
             });
             $('input:checkbox.geotr-api:not(:checked)').each(function() {
-                $('#tab-' + $(this).val()).hide();
+                var value = $(this).val();
+                $('#tab-' + value).hide();
+                Cookies.remove(value);
             });
         } else {
             toastr.warning('Paste the output of "traceroute -n IP" in the form and submit.');
