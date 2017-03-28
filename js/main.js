@@ -322,6 +322,10 @@ $(function() {
         console.log('DataTables: ', message);
     });
 
+    toastr.options = {
+        'positionClass': 'toast-bottom-right'
+    };
+
     var map = new Maplace({
         locations: [{
             lat: 0,
