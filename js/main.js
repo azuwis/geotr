@@ -291,7 +291,7 @@ $(function() {
     });
 
     if (location.protocol == 'https:') {
-        $('.no-https').remove();
+        $('.no-https').closest('label').remove();
     }
 
     $('#traceroute').one('focus', function() {
