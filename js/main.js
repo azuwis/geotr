@@ -286,7 +286,11 @@ var viewOnMap = function(map, lat, lon) {
 };
 
 $(function() {
-    $.getScript('js/advertisement.js').fail(function() {
+    $.ajax({
+        url: 'js/advertisement.js',
+        dataType: 'script',
+        cache: true
+    }).fail(function() {
         toastr.warning('Please disable adblock on this page to make IP info APIs work.', '', {timeOut: 0});
     });
 
