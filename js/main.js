@@ -368,7 +368,8 @@ $(function() {
                 // NProgress.start();
                 // $('#submit').prop('disabled', true);
                 if (checkbox.prop('checked')) {
-                    $('#tab-' + value).show();
+                    var tab = $('#tab-' + value);
+                    tab.show().css({opacity: 0.3});
                     var func = getInfo[value];
                     func(ips).done(function(info) {
                         if (!tabActive) {
@@ -381,6 +382,8 @@ $(function() {
                         // $('#submit').prop('disabled', false);
                     }).fail(function() {
                         toastr.warning('Failed to get IP info from ' + value);
+                    }).always(function() {
+                        tab.css({opacity: 1});
                     });
                 } else {
                     $('#tab-' + value).hide();
