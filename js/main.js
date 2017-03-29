@@ -64,7 +64,7 @@ var getInfoMulti = function(ips, func) {
         });
     });
     return $.when.apply(undefined, requests).then(function() {
-        return Array.from(arguments).map(function(data, index) {
+        return $.makeArray(arguments).map(function(data, index) {
             data.num = index + 1;
             data.ip = ips[index];
             return data;
@@ -130,7 +130,8 @@ var getInfo = {
                 url: '//ipinfo.io/' + ip,
                 dataType: 'json'
             }).then(function(data) {
-                var [lat, lon] = data.loc.split(',');
+                var latlon = data.loc.split(',');
+                var lat = latlon[0], lon = latlon[1];
                 return {
                     country: data.country,
                     region: data.region,
@@ -194,7 +195,8 @@ var getInfo = {
                 dataType: 'jsonp'
             }).then(function(data) {
                 var country = '', region = '', city = '', isp = '', addr = '', marker;
-                var [x, y] = data.addr.split(' ');
+                var xy = data.addr.split(' ');
+                var x = xy[0], y = xy[1];
                 if (data.addr.match(/(骨干|全国联通)/)) {
                     country = '中国';
                     isp = data.addr;
