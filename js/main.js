@@ -212,8 +212,17 @@ var getInfo = {
     },
     sina: function(ips) {
         sina.init();
+        var sinaProxy = function(ip) {
+            if (location.protocol == 'https:') {
+                return $.yql({
+                    url: 'http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=' + ip
+                });
+            } else {
+                return sina.getInfo(ip);
+            }
+        };
         return getInfoMulti(ips, function(ip) {
-            return sina.getInfo(ip).then(function(data) {
+            return sinaProxy(ip).then(function(data) {
                 var address = data.country + ',' + data.province + ',' + data.city;
                 var marker;
                 if (data.country != '中国') {
