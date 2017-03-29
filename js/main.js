@@ -1,5 +1,11 @@
 var google_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=';
 
+$.wait = function(time) {
+    return $.Deferred(function(deferred) {
+        setTimeout(deferred.resolve, time);
+    });
+};
+
 var getIPsFromInput = function(input) {
     var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
     var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
@@ -22,8 +28,8 @@ var getIPsFromInput = function(input) {
 };
 
 var getInfoMulti = function(ips, func) {
-    var requests = ips.map(function(ip) {
-        return func(ip).then(function(data) {
+    var requests = ips.map(function(ip, index) {
+        return func(ip, index).then(function(data) {
             if(data.address) {
                 return $.get(google_geocode_url + data.address)
                     .then(function(geo) {
@@ -206,6 +212,41 @@ var getInfo = {
                     address: address,
                     marker: marker
                 };
+            });
+        });
+    },
+    taobao: function(ips) {
+        return getInfoMulti(ips, function(ip, index) {
+            return $.wait(index * 120).then(function() {
+                return $.ajax({
+                    url: '//query.yahooapis.com/v1/public/yql',
+                    data: {
+                        q: 'select * from json where url="' + 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip + '"',
+                        format: 'json'
+                    }
+                });
+            }).then(function(data) {
+                var results = data.query.results;
+                if (results) {
+                    var data = results.json.data;
+                    var address = [data.country, data.region, data.city].join(',');
+                    var marker;
+                    if (data.country != '中国') {
+                        marker = true;
+                    }
+                    return {
+                        country: data.country,
+                        region: data.region,
+                        city: data.city,
+                        isp: data.isp,
+                        lat: '',
+                        lon: '',
+                        address: address,
+                        marker: marker
+                    };
+                } else {
+                    return $.Deferred().reject(data);
+                }
             });
         });
     }

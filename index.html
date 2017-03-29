@@ -56,6 +56,9 @@
                                             <label class="geotr-api-no-https">
                                                 <input type="checkbox" class="geotr-api geotr-api-recommend" checked="checked" value="sina">SINA
                                             </label>
+                                            <label>
+                                                <input type="checkbox" class="geotr-api" value="taobao">TAOBAO
+                                            </label>
                                         </div>
                                         <div class="mui-radio">
                                             <label>
@@ -82,6 +85,7 @@
                         <li id="tab-nekudo"><a data-mui-toggle="tab" data-mui-controls="pane-nekudo">nekudo</a></li>
                         <li id="tab-pconline"><a data-mui-toggle="tab" data-mui-controls="pane-pconline">pconline</a></li>
                         <li id="tab-sina" class="geotr-api-no-https"><a data-mui-toggle="tab" data-mui-controls="pane-sina">sina</a></li>
+                        <li id="tab-taobao"><a data-mui-toggle="tab" data-mui-controls="pane-taobao">taobao</a></li>
                     </ul>
                     <div class="mui-tabs__pane mui--is-active" id="pane-ipapi">
                         <table class="mui-table mui-table--bordered">
@@ -164,6 +168,22 @@
                         </table>
                     </div>
                     <div class="mui-tabs__pane" id="pane-sina">
+                        <table class="mui-table mui-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th>Num</th>
+                                    <th>IP</th>
+                                    <th>Country</th>
+                                    <th>Region</th>
+                                    <th>City</th>
+                                    <th>ISP</th>
+                                    <th>Lat</th>
+                                    <th>Lon</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="mui-tabs__pane" id="pane-taobao">
                         <table class="mui-table mui-table--bordered">
                             <thead>
                                 <tr>
