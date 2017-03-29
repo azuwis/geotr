@@ -313,6 +313,43 @@ var getLocsFromInfo = function(info) {
     return locs;
 };
 
+var getQuery = function() {
+    var query = {};
+    var x = window.location.hash.substr(1).split('&');
+    if (x.length > 0) {
+        x.forEach(function(elem) {
+            if (elem) {
+                var y = elem.split('=');
+                if (y.length == 2) {
+                    query[y[0]] = y[1].split(',');
+                }
+            }
+        });
+    }
+    if (query.apis) {
+        $('input:checkbox.geotr-api').each(function() {
+            var checkbox = $(this);
+            checkbox.prop('checked', $.inArray(checkbox.val(), query.apis) != -1);
+        });
+    } else {
+        $('input:checkbox.geotr-api').each(function() {
+            var cookies = Cookies.get();
+            if (!$.isEmptyObject(cookies)) {
+                var checkbox = $(this);
+                checkbox.prop('checked', !!cookies[checkbox.val()]);
+            }
+        });
+    }
+    if (query.ips) {
+        $('#traceroute').val(query.ips.join("\n"));
+        $('#submit').click();
+    }
+};
+
+var setQuery = function(query) {
+    window.location.hash = '#ips=' + query.ips.join(',') + '&apis=' + query.apis.join(',');
+};
+
 var resetMap = function(map) {
     if (!(map.Loaded() && map.markers.length == 0)) {
         map.SetLocations([], true);
@@ -376,6 +413,7 @@ $(function() {
         $('#traceroute').val('');
         $('table').DataTable().clear().draw(false);
         resetMap(map);
+        window.location.hash = '';
     });
 
     $.fn.dataTable.ext.errMode = 'none';
@@ -414,14 +452,6 @@ $(function() {
         }
     }).Load();
 
-    $('input:checkbox.geotr-api').each(function() {
-        var cookies = Cookies.get();
-        if (!$.isEmptyObject(cookies)) {
-            var checkbox = $(this);
-            checkbox.prop('checked', !!cookies[checkbox.val()]);
-        }
-    });
-
     $('input:radio[name=geotr-api]').click(function() {
         var radio = $(this);
         var value = radio.val();
@@ -443,6 +473,10 @@ $(function() {
         resetMap(map);
         var input = $('#traceroute').val();
         var ips = getIPsFromInput(input);
+        var apis = $('input:checkbox.geotr-api:checked').map(function() {
+            return $(this).val();
+        }).get();
+        setQuery({ips: ips, apis: apis});
         var tabActive = false;
         if (ips.length > 0) {
             $('#submit, #clear').prop('disabled', true);
@@ -499,4 +533,6 @@ $(function() {
         var data = table.row(this).data();
         viewOnMap(map, data.lat, data.lon);
     });
+
+    getQuery();
 });
