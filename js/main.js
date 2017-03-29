@@ -74,41 +74,55 @@ var getInfoMulti = function(ips, func) {
 
 var getInfo = {
     ipapi: function(ips) {
-        return $.ajax({
-            type: 'POST',
-            url: '//ip-api.com/batch',
-            data: JSON.stringify(ips.map(function(elem) {
-                return {query: elem};
-            })),
-            dataType: 'json'
-        }).then(function(data) {
-            return data.map(function(elem, index) {
-                var region = '', city = '', isp = '';
-                if (elem.isp.match(/(backbone|cnc group)/i)) {
-                    region = '';
-                    city = '';
-                } else {
-                    region = elem.regionName;
-                    city = elem.city;
-                }
-                isp = elem.isp;
-                if (elem.isp.match(/telecom/i)) {
-                    isp = 'TEL';
-                } else if (elem.isp.match(/(cnc|unicom)/i)) {
-                    isp = 'CNC';
-                }
-                return {
-                    num: index + 1,
-                    ip: elem.query,
-                    country: elem.country,
-                    region: region,
-                    city: city,
-                    isp: isp,
-                    lat: elem.lat,
-                    lon: elem.lon
-                };
+        var ipapiMapFunc = function(elem) {
+            var region = '', city = '', isp = '';
+            if (elem.isp.match(/(backbone|cnc group)/i)) {
+                region = '';
+                city = '';
+            } else {
+                region = elem.regionName;
+                city = elem.city;
+            }
+            isp = elem.isp;
+            if (elem.isp.match(/telecom/i)) {
+                isp = 'TEL';
+            } else if (elem.isp.match(/(cnc|unicom)/i)) {
+                isp = 'CNC';
+            }
+            return {
+                country: elem.country,
+                region: region,
+                city: city,
+                isp: isp,
+                lat: elem.lat,
+                lon: elem.lon
+            };
+        };
+        if (location.protocol == 'https:') {
+            return getInfoMulti(ips, function(ip) {
+                return $.yql({
+                    url: 'http://ip-api.com/json/' + ip
+                }).then(function(data) {
+                    return ipapiMapFunc(data);
+                });
             });
-        });
+        } else {
+            return $.ajax({
+                type: 'POST',
+                url: '//ip-api.com/batch',
+                data: JSON.stringify(ips.map(function(elem) {
+                    return {query: elem};
+                })),
+                dataType: 'json'
+            }).then(function(data) {
+                return data.map(function(elem, index) {
+                    var info = ipapiMapFunc(elem);
+                    info.num = index + 1;
+                    info.ip  = elem.query;
+                    return info;
+                });
+            });
+        }
     },
     ipinfo: function(ips) {
         return getInfoMulti(ips, function(ip) {
