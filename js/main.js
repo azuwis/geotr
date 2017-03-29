@@ -236,8 +236,8 @@ var getInfo = {
                     }
                     return {
                         country: data.country,
-                        region: data.region,
-                        city: data.city,
+                        region: data.region.replace(/(市|省)$/, ''),
+                        city: data.city.replace(/市$/, ''),
                         isp: data.isp,
                         lat: '',
                         lon: '',
