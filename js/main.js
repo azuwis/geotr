@@ -456,7 +456,7 @@ $(function() {
         }
     });
 
-    $('#traceroute').keydown(function(e) {
+    $('#traceroute').keydown(function(event) {
         if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey) {
             $('#submit').click();
         }
