@@ -434,7 +434,7 @@ $(function() {
                     tab.css({opacity: 1});
                 });
             });
-            $.when.apply(undefined, requests).done(function() {
+            $.when.apply(undefined, requests).always(function() {
                 $('#submit, #clear').prop('disabled', false);
             });
             $('input:checkbox.geotr-api:not(:checked)').each(function() {
