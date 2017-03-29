@@ -281,13 +281,8 @@ var getLocsFromInfo = function(info) {
 };
 
 var resetMap = function(map) {
-    if (!(map.Loaded() && map.markers.length == 1 && map.markers[0].lat == 0 && map.markers[0].lon == -180)) {
-        map.Load({
-            locations: [{
-                lat: 0,
-                lon: -180,
-                zoom: 2
-            }]});
+    if (!(map.Loaded() && map.markers.length == 0)) {
+        map.SetLocations([], true);
     }
 };
 
@@ -374,11 +369,7 @@ $(function() {
     };
 
     var map = new Maplace({
-        locations: [{
-            lat: 0,
-            lon: -180,
-            zoom: 2
-        }],
+        locations: [],
         type: 'polyline',
         stroke_options: {
             icons: [{
