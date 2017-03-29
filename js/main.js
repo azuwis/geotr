@@ -16,7 +16,7 @@ $.yql = function(arg) {
     }).then(function(data) {
         var results = data.query.results;
         if (results) {
-            return results.json.data;
+            return results.json;
         } else {
             return $.Deferred().reject(data);
         }
@@ -238,7 +238,8 @@ var getInfo = {
                 return $.yql({
                     url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
                 });
-            }).then(function(data) {
+            }).then(function(info) {
+                var data = info.data;
                 var address = [data.country, data.region, data.city].join(',');
                 var marker;
                 if (data.country != '中国') {
