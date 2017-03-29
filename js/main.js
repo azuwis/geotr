@@ -6,6 +6,23 @@ $.wait = function(time) {
     });
 };
 
+$.yql = function(arg) {
+    return $.ajax({
+        url: '//query.yahooapis.com/v1/public/yql',
+        data: {
+            q: 'select * from json where url="' + arg.url + '"',
+            format: 'json'
+        }
+    }).then(function(data) {
+        var results = data.query.results;
+        if (results) {
+            return results.json.data;
+        } else {
+            return $.Deferred().reject(data);
+        }
+    });
+};
+
 var getIPsFromInput = function(input) {
     var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
     var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
@@ -218,35 +235,25 @@ var getInfo = {
     taobao: function(ips) {
         return getInfoMulti(ips, function(ip, index) {
             return $.wait(index * 120).then(function() {
-                return $.ajax({
-                    url: '//query.yahooapis.com/v1/public/yql',
-                    data: {
-                        q: 'select * from json where url="' + 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip + '"',
-                        format: 'json'
-                    }
+                return $.yql({
+                    url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
                 });
             }).then(function(data) {
-                var results = data.query.results;
-                if (results) {
-                    var data = results.json.data;
-                    var address = [data.country, data.region, data.city].join(',');
-                    var marker;
-                    if (data.country != '中国') {
-                        marker = true;
-                    }
-                    return {
-                        country: data.country,
-                        region: data.region.replace(/(市|省)$/, ''),
-                        city: data.city.replace(/市$/, ''),
-                        isp: data.isp,
-                        lat: '',
-                        lon: '',
-                        address: address,
-                        marker: marker
-                    };
-                } else {
-                    return $.Deferred().reject(data);
+                var address = [data.country, data.region, data.city].join(',');
+                var marker;
+                if (data.country != '中国') {
+                    marker = true;
                 }
+                return {
+                    country: data.country,
+                    region: data.region.replace(/(市|省)$/, ''),
+                    city: data.city.replace(/市$/, ''),
+                    isp: data.isp,
+                    lat: '',
+                    lon: '',
+                    address: address,
+                    marker: marker
+                };
             });
         });
     }
