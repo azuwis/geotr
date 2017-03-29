@@ -409,7 +409,7 @@ $(function() {
         $(this).val('');
     });
 
-    $('#clear').click(function() {
+    $('#reset').click(function() {
         $('#traceroute').val('');
         $('table').DataTable().clear().draw(false);
         resetMap(map);
@@ -479,7 +479,7 @@ $(function() {
         setQuery({ips: ips, apis: apis});
         var tabActive = false;
         if (ips.length > 0) {
-            $('#submit, #clear').prop('disabled', true);
+            $('#submit, #reset').prop('disabled', true);
             var requests = $('input:checkbox.geotr-api:checked').map(function() {
                 var checkbox = $(this);
                 var value = checkbox.val();
@@ -502,7 +502,7 @@ $(function() {
                 });
             });
             $.when.apply(undefined, requests).always(function() {
-                $('#submit, #clear').prop('disabled', false);
+                $('#submit, #reset').prop('disabled', false);
             });
             $('input:checkbox.geotr-api:not(:checked)').each(function() {
                 var value = $(this).val();
