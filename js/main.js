@@ -400,7 +400,11 @@ $(function() {
                 if (elem) {
                     var y = elem.split('=');
                     if (y.length == 2) {
-                        query[y[0]] = y[1].split(',');
+                        if (y[1] == '') {
+                            query[y[0]] = [];
+                        } else {
+                            query[y[0]] = y[1].split(',');
+                        }
                     }
                 }
             });
