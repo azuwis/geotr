@@ -285,7 +285,7 @@ $(function() {
     var getInfoMulti = function(ips, func) {
         var requests = ips.map(function(ip, index) {
             return func(ip, index).then(function(data) {
-                if(data.address) {
+                if (data.address) {
                     return $.get(google_geocode_url + data.address)
                         .then(function(geo) {
                             var results = geo.results;
@@ -354,7 +354,7 @@ $(function() {
             $('input:checkbox.geotr-api').each(function() {
                 var checkbox = $(this);
                 var value = checkbox.val();
-                if($.inArray(value, apis) != -1) {
+                if ($.inArray(value, apis) != -1) {
                     checkbox.prop('checked', true);
                     var tab = $('#tab-' + value);
                     tab.show().css({opacity: 0.3});
