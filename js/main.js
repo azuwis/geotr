@@ -313,39 +313,6 @@ var getLocsFromInfo = function(info) {
     return locs;
 };
 
-var getQuery = function() {
-    var query = {};
-    var x = window.location.hash.substr(1).split('&');
-    if (x.length > 0) {
-        x.forEach(function(elem) {
-            if (elem) {
-                var y = elem.split('=');
-                if (y.length == 2) {
-                    query[y[0]] = y[1].split(',');
-                }
-            }
-        });
-    }
-    if (query.apis) {
-        $('input:checkbox.geotr-api').each(function() {
-            var checkbox = $(this);
-            checkbox.prop('checked', $.inArray(checkbox.val(), query.apis) != -1);
-        });
-    } else {
-        $('input:checkbox.geotr-api').each(function() {
-            var cookies = Cookies.get();
-            if (!$.isEmptyObject(cookies)) {
-                var checkbox = $(this);
-                checkbox.prop('checked', !!cookies[checkbox.val()]);
-            }
-        });
-    }
-    if (query.ips) {
-        $('#traceroute').val(query.ips.join("\n"));
-        $('#submit').click();
-    }
-};
-
 var setQuery = function(query) {
     window.location.hash = '#ips=' + query.ips.join(',') + '&apis=' + query.apis.join(',');
 };
@@ -392,6 +359,34 @@ var viewOnMap = function(map, lat, lon) {
 };
 
 $(function() {
+    var submitQuery = function() {
+        var query = {};
+        var x = window.location.hash.substr(1).split('&');
+        if (x.length > 0) {
+            x.forEach(function(elem) {
+                if (elem) {
+                    var y = elem.split('=');
+                    if (y.length == 2) {
+                        query[y[0]] = y[1].split(',');
+                    }
+                }
+            });
+        }
+        if (!query.apis) {
+            var cookies = Cookies.get();
+            if ($.isEmptyObject(cookies)) {
+                query.apis = $('input:checkbox.geotr-api:checked').map(function() {
+                    return $(this).val();
+                }).get();
+            } else {
+                query.apis = Object.keys(cookies);
+            }
+        }
+        if (query.ips) {
+            submit(query.ips, query.apis);
+        }
+    };
+
     $.ajax({
         url: 'js/advertisement.js',
         dataType: 'script',
@@ -467,50 +462,60 @@ $(function() {
         });
     });
 
-    $('#submit').click(function(event) {
-        event.preventDefault();
+    var submit = function(ips, apis) {
         $('table').DataTable().clear().draw(false);
         resetMap(map);
+        var tabActive = false;
+        if (ips.length > 0) {
+            $('#submit, #reset').prop('disabled', true);
+            var requests = [];
+            $('input:checkbox.geotr-api').each(function() {
+                var checkbox = $(this);
+                var value = checkbox.val();
+                if($.inArray(value, apis) != -1) {
+                    checkbox.prop('checked', true);
+                    var tab = $('#tab-' + value);
+                    tab.show().css({opacity: 0.3});
+                    Cookies.set(value, 1, {expires: 30});
+                    var func = getInfo[value];
+                    var request = func(ips).done(function(info) {
+                        if (!tabActive) {
+                            mui.tabs.activate('pane-' + value);
+                            tabActive = true;
+                            var locations = getLocsFromInfo(info);
+                            map.SetLocations(locations, true);
+                        }
+                        $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
+                    }).fail(function() {
+                        toastr.warning(value.toUpperCase() + ': Failed to get IP info.');
+                    }).always(function() {
+                        tab.css({opacity: 1});
+                    });
+                    requests.push(request);
+                } else {
+                    checkbox.prop('checked', false);
+                    $('#tab-' + value).hide();
+                    Cookies.remove(value);
+                }
+            });
+            $.when.apply(undefined, requests).always(function() {
+                $('#submit, #reset').prop('disabled', false);
+            });
+        } else {
+            toastr.warning('Paste the output of "traceroute -n IP" in the form and submit.');
+        }
+    };
+
+    $('#submit').click(function(event) {
+        event.preventDefault();
         var input = $('#traceroute').val();
         var ips = getIPsFromInput(input);
         var apis = $('input:checkbox.geotr-api:checked').map(function() {
             return $(this).val();
         }).get();
         setQuery({ips: ips, apis: apis});
-        var tabActive = false;
-        if (ips.length > 0) {
-            $('#submit, #reset').prop('disabled', true);
-            var requests = $('input:checkbox.geotr-api:checked').map(function() {
-                var checkbox = $(this);
-                var value = checkbox.val();
-                var tab = $('#tab-' + value);
-                tab.show().css({opacity: 0.3});
-                Cookies.set(value, 1, {expires: 30});
-                var func = getInfo[value];
-                return func(ips).done(function(info) {
-                    if (!tabActive) {
-                        mui.tabs.activate('pane-' + value);
-                        tabActive = true;
-                        var locations = getLocsFromInfo(info);
-                        map.SetLocations(locations, true);
-                    }
-                    $('#pane-' + value + ' table').DataTable().rows.add(info).draw(false);
-                }).fail(function() {
-                    toastr.warning(value.toUpperCase() + ': Failed to get IP info.');
-                }).always(function() {
-                    tab.css({opacity: 1});
-                });
-            });
-            $.when.apply(undefined, requests).always(function() {
-                $('#submit, #reset').prop('disabled', false);
-            });
-            $('input:checkbox.geotr-api:not(:checked)').each(function() {
-                var value = $(this).val();
-                $('#tab-' + value).hide();
-                Cookies.remove(value);
-            });
-        } else {
-            toastr.warning('Paste the output of "traceroute -n IP" in the form and submit.');
+        if (!("onhashchange" in window)) {
+            submitQuery();
         }
     });
 
@@ -534,5 +539,9 @@ $(function() {
         viewOnMap(map, data.lat, data.lon);
     });
 
-    getQuery();
+    if ("onhashchange" in window) {
+        window.onhashchange = submitQuery;
+    }
+
+    submitQuery();
 });
