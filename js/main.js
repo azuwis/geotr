@@ -286,11 +286,11 @@ $(function() {
                                     data.lat = location.lat;
                                     data.lon = location.lng;
                                 }
-                                storage.set(key + '_' + ip, data, 60);
+                                storage.set(key + '_' + ip, data, 1440);
                                 return data;
                             });
                     } else {
-                        storage.set(key + '_' + ip, data, 60);
+                        storage.set(key + '_' + ip, data, 1440);
                         return data;
                     }
                 });
