@@ -341,7 +341,7 @@ $(function() {
 
     var storage = {
         enabled: !!window.localStorage,
-        set: function(key, data, expire){
+        set: function(key, data, expire) {
             if (!this.enabled) {
                 return false;
             }
@@ -353,7 +353,7 @@ $(function() {
             localStorage.setItem(key, JSON.stringify(record));
             return data;
         },
-        get: function(key){
+        get: function(key) {
             if (!this.enabled) {
                 return false;
             }
@@ -362,10 +362,23 @@ $(function() {
                 return false;
             }
             return (new Date().getTime() < record.timestamp && JSON.parse(record.value));
+        },
+        housekeep: function() {
+            if (this.enabled) {
+                var date = new Date().getTime();
+                for (var i = 0; i < localStorage.length; i++) {
+                    var key = localStorage.key(i);
+                    var record = localStorage.getItem(key);
+                    if (date > record.timestamp) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            }
         }
     };
 
     var submit = function(ips, apis) {
+        storage.housekeep();
         $('table').DataTable().clear().draw(false);
         resetMap(map);
         var tabActive = false;
