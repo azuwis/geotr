@@ -96,7 +96,7 @@ $(function() {
                 };
             };
             if (location.protocol == 'https:') {
-                return getInfoMulti(ips, function(ip) {
+                return getInfoMulti('ipapi', ips, function(ip) {
                     return $.yql({
                         url: 'http://ip-api.com/json/' + ip
                     }).then(function(data) {
@@ -122,7 +122,7 @@ $(function() {
             }
         },
         ipinfo: function(ips) {
-            return getInfoMulti(ips, function(ip) {
+            return getInfoMulti('ipinfo', ips, function(ip) {
                 return $.ajax({
                     url: '//ipinfo.io/' + ip,
                     dataType: 'json'
@@ -141,7 +141,7 @@ $(function() {
             });
         },
         freegeoip: function(ips) {
-            return getInfoMulti(ips, function(ip) {
+            return getInfoMulti('freegeoip', ips, function(ip) {
                 return $.ajax({
                     url: '//freegeoip.net/json/' + ip,
                     dataType: 'jsonp'
@@ -160,7 +160,7 @@ $(function() {
             });
         },
         nekudo: function(ips) {
-            return getInfoMulti(ips, function(ip) {
+            return getInfoMulti('nekudo', ips, function(ip) {
                 return $.ajax({
                     url: '//geoip.nekudo.com/api/' + ip + '/full',
                     dataType: 'json'
@@ -186,7 +186,7 @@ $(function() {
             });
         },
         pconline: function(ips) {
-            return getInfoMulti(ips, function(ip) {
+            return getInfoMulti('pconline', ips, function(ip) {
                 return $.ajax({
                     url: '//whois.pconline.com.cn/ipJson.jsp?ip=' + ip,
                     dataType: 'jsonp'
@@ -234,7 +234,7 @@ $(function() {
                     return sina.getInfo(ip);
                 }
             };
-            return getInfoMulti(ips, function(ip) {
+            return getInfoMulti('sina', ips, function(ip) {
                 return sinaProxy(ip).then(function(data) {
                     var address = data.country + ',' + data.province + ',' + data.city;
                     var marker;
@@ -255,7 +255,7 @@ $(function() {
             });
         },
         taobao: function(ips) {
-            return getInfoMulti(ips, function(ip, index) {
+            return getInfoMulti('taotao', ips, function(ip, index) {
                 return $.wait(index * 120).then(function() {
                     return $.yql({
                         url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
@@ -282,24 +282,31 @@ $(function() {
         }
     };
 
-    var getInfoMulti = function(ips, func) {
+    var getInfoMulti = function(key, ips, func) {
         var requests = ips.map(function(ip, index) {
-            return func(ip, index).then(function(data) {
-                if (data.address) {
-                    return $.get(google_geocode_url + data.address)
-                        .then(function(geo) {
-                            var results = geo.results;
-                            if (results.length > 0) {
-                                var location = results[0].geometry.location;
-                                data.lat = location.lat;
-                                data.lon = location.lng;
-                            }
-                            return data;
-                        });
-                } else {
-                    return data;
-                }
-            });
+            var data = storage.get(key + '_' + ip);
+            if (data) {
+                return data;
+            } else {
+                return func(ip, index).then(function(data) {
+                    if (data.address) {
+                        return $.get(google_geocode_url + data.address)
+                            .then(function(geo) {
+                                var results = geo.results;
+                                if (results.length > 0) {
+                                    var location = results[0].geometry.location;
+                                    data.lat = location.lat;
+                                    data.lon = location.lng;
+                                }
+                                storage.set(key + '_' + ip, data, 60);
+                                return data;
+                            });
+                    } else {
+                        storage.set(key + '_' + ip, data, 60);
+                        return data;
+                    }
+                });
+            }
         });
         return $.when.apply(undefined, requests).then(function() {
             return $.makeArray(arguments).map(function(data, index) {
@@ -341,6 +348,32 @@ $(function() {
     var resetMap = function(map) {
         if (!(map.Loaded() && map.markers.length == 0)) {
             map.SetLocations([], true);
+        }
+    };
+
+    var storage = {
+        enabled: !!window.localStorage,
+        set: function(key, data, expire){
+            if (!this.enabled) {
+                return false;
+            }
+            var expire_ms = expire * 60 * 1000;
+            var record = {
+                value: JSON.stringify(data),
+                timestamp: new Date().getTime() + expire_ms
+            };
+            localStorage.setItem(key, JSON.stringify(record));
+            return data;
+        },
+        get: function(key){
+            if (!this.enabled) {
+                return false;
+            }
+            var record = JSON.parse(localStorage.getItem(key));
+            if (!record) {
+                return false;
+            }
+            return (new Date().getTime() < record.timestamp && JSON.parse(record.value));
         }
     };
 
