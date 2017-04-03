@@ -25,27 +25,6 @@ var sina = {
 $(function() {
     var google_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=';
 
-    var getIPsFromInput = function(input) {
-        var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
-        var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
-        var ips = input.trim().split("\n")
-            .map(function(elem) {
-                if (elem.indexOf('traceroute') >= 0) {
-                    return null;
-                }
-                var m = elem.match(ip_regexp);
-                if (m){
-                    return m[0];
-                } else {
-                    return null;
-                }
-            })
-            .filter(function(elem) {
-                return elem && !elem.match(ip_regexp_rfc1918);
-            });
-        return ips;
-    };
-
     var getInfo = {
         ipapi: function(ips) {
             var ipapiProxy = function(ip) {
@@ -280,6 +259,27 @@ $(function() {
                 return data;
             });
         });
+    };
+
+    var getIPsFromInput = function(input) {
+        var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+        var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
+        var ips = input.trim().split("\n")
+            .map(function(elem) {
+                if (elem.indexOf('traceroute') >= 0) {
+                    return null;
+                }
+                var m = elem.match(ip_regexp);
+                if (m){
+                    return m[0];
+                } else {
+                    return null;
+                }
+            })
+            .filter(function(elem) {
+                return elem && !elem.match(ip_regexp_rfc1918);
+            });
+        return ips;
     };
 
     var getLocsFromInfo = function(info) {
