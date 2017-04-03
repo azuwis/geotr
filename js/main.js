@@ -201,9 +201,11 @@ $(function() {
         taobao: function(ips) {
             return getInfoMulti('taotao', ips, function(ip, index) {
                 return wait(index * 120).then(function() {
-                    return yql({
-                        url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
-                    });
+                    return retryService(function() {
+                        return yql({
+                            url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
+                        });
+                    }, 3, 150).tryIt();
                 }).then(function(info) {
                     var data = info.data;
                     var address = [data.country, data.region, data.city].join(',');
@@ -314,6 +316,30 @@ $(function() {
         if (!(map.Loaded() && map.markers.length == 0)) {
             map.SetLocations([], true);
         }
+    };
+
+    var retryService = function(ajaxCall, retries, timeout) {
+        var _deferred = jQuery.Deferred();
+        var _tryCounter = 0;
+        var _retries = retries - 1;
+        var _retryCallback;
+        var self = {};
+        self.tryIt = function() {
+            _tryCounter++;
+            ajaxCall().done(function(results) {
+                return _deferred.resolve(results);
+            }).fail(function() {
+                if (_tryCounter <= _retries) {
+                    wait(timeout).then(function() {
+                        self.tryIt();
+                    });
+                } else {
+                    _deferred.reject();
+                }
+            });
+            return _deferred.promise();
+        };
+        return self;
     };
 
     var storage = {
