@@ -312,6 +312,36 @@ $(function() {
         return locs;
     };
 
+    var getQuery = function() {
+        var query = {};
+        var x = window.location.hash.substr(1).split('&');
+        if (x.length > 0) {
+            x.forEach(function(elem) {
+                if (elem) {
+                    var y = elem.split('=');
+                    if (y.length == 2) {
+                        if (y[1] == '') {
+                            query[y[0]] = [];
+                        } else {
+                            query[y[0]] = y[1].split(',');
+                        }
+                    }
+                }
+            });
+        }
+        if (!query.apis) {
+            var cookies = Cookies.get();
+            if ($.isEmptyObject(cookies)) {
+                query.apis = $('input:checkbox.geotr-api:checked').map(function() {
+                    return $(this).val();
+                }).get();
+            } else {
+                query.apis = Object.keys(cookies);
+            }
+        }
+        return query;
+    };
+
     var resetMap = function(map) {
         if (!(map.Loaded() && map.markers.length == 0)) {
             map.SetLocations([], true);
@@ -433,32 +463,7 @@ $(function() {
     };
 
     var submitQuery = function() {
-        var query = {};
-        var x = window.location.hash.substr(1).split('&');
-        if (x.length > 0) {
-            x.forEach(function(elem) {
-                if (elem) {
-                    var y = elem.split('=');
-                    if (y.length == 2) {
-                        if (y[1] == '') {
-                            query[y[0]] = [];
-                        } else {
-                            query[y[0]] = y[1].split(',');
-                        }
-                    }
-                }
-            });
-        }
-        if (!query.apis) {
-            var cookies = Cookies.get();
-            if ($.isEmptyObject(cookies)) {
-                query.apis = $('input:checkbox.geotr-api:checked').map(function() {
-                    return $(this).val();
-                }).get();
-            } else {
-                query.apis = Object.keys(cookies);
-            }
-        }
+        var query = getQuery();
         if (query.ips) {
             submit(query.ips, query.apis);
         }
@@ -570,6 +575,12 @@ $(function() {
         var apis = $('input:checkbox.geotr-api:checked').map(function() {
             return $(this).val();
         }).get();
+        if (ips.length == 0) {
+            ips = getQuery().ips;
+            if (!ips) {
+                ips = [];
+            }
+        }
         setQuery({ips: ips, apis: apis});
         if (!("onhashchange" in window)) {
             submitQuery();
