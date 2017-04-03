@@ -25,29 +25,6 @@ var sina = {
 $(function() {
     var google_geocode_url = 'https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyBJgAgToHzsALJU9r_jITovS3Puo3_G-Cw&address=';
 
-    $.wait = function(time) {
-        return $.Deferred(function(deferred) {
-            setTimeout(deferred.resolve, time);
-        });
-    };
-
-    $.yql = function(arg) {
-        return $.ajax({
-            url: '//query.yahooapis.com/v1/public/yql',
-            data: {
-                q: 'select * from json where url="' + arg.url + '"',
-                format: 'json'
-            }
-        }).then(function(data) {
-            var results = data.query.results;
-            if (results) {
-                return results.json;
-            } else {
-                return $.Deferred().reject(data);
-            }
-        });
-    };
-
     var getIPsFromInput = function(input) {
         var ip_regexp = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
         var ip_regexp_rfc1918 = /^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*/;
@@ -73,7 +50,7 @@ $(function() {
         ipapi: function(ips) {
             var ipapiProxy = function(ip) {
                 if (location.protocol == 'https:') {
-                    return $.yql({
+                    return yql({
                         url: 'http://ip-api.com/json/' + ip
                     });
                 } else {
@@ -215,7 +192,7 @@ $(function() {
             sina.init();
             var sinaProxy = function(ip) {
                 if (location.protocol == 'https:') {
-                    return $.yql({
+                    return yql({
                         url: 'http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=' + ip
                     });
                 } else {
@@ -244,8 +221,8 @@ $(function() {
         },
         taobao: function(ips) {
             return getInfoMulti('taotao', ips, function(ip, index) {
-                return $.wait(index * 120).then(function() {
-                    return $.yql({
+                return wait(index * 120).then(function() {
+                    return yql({
                         url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
                     });
                 }).then(function(info) {
@@ -377,6 +354,10 @@ $(function() {
         }
     };
 
+    var setQuery = function(query) {
+        window.location.hash = '#ips=' + query.ips.join(',') + '&apis=' + query.apis.join(',');
+    };
+
     var submit = function(ips, apis) {
         storage.housekeep();
         $('table').DataTable().clear().draw(false);
@@ -425,10 +406,6 @@ $(function() {
         }
     };
 
-    var setQuery = function(query) {
-        window.location.hash = '#ips=' + query.ips.join(',') + '&apis=' + query.apis.join(',');
-    };
-
     var submitQuery = function() {
         var query = {};
         var x = window.location.hash.substr(1).split('&');
@@ -470,6 +447,29 @@ $(function() {
             }
         }
         map.ViewOnMap(index + 1);
+    };
+
+    var wait = function(time) {
+        return $.Deferred(function(deferred) {
+            setTimeout(deferred.resolve, time);
+        });
+    };
+
+    var yql = function(arg) {
+        return $.ajax({
+            url: '//query.yahooapis.com/v1/public/yql',
+            data: {
+                q: 'select * from json where url="' + arg.url + '"',
+                format: 'json'
+            }
+        }).then(function(data) {
+            var results = data.query.results;
+            if (results) {
+                return results.json;
+            } else {
+                return $.Deferred().reject(data);
+            }
+        });
     };
 
     $.ajax({
