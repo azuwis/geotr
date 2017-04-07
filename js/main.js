@@ -414,7 +414,11 @@ $(function() {
     };
 
     var setQuery = function(query) {
-        window.location.hash = '#ips=' + query.ips.join(',') + '&apis=' + query.apis.join(',');
+        var ips = query.ips;
+        if (!ips || ips.length == 0) {
+            ips = getQuery().ips;
+        }
+        window.location.hash = '#ips=' + ips.join(',') + '&apis=' + query.apis.join(',');
     };
 
     var submit = function(ips, apis) {
@@ -578,12 +582,6 @@ $(function() {
         var apis = $('input:checkbox.geotr-api:checked').map(function() {
             return $(this).val();
         }).get();
-        if (ips.length == 0) {
-            ips = getQuery().ips;
-            if (!ips) {
-                ips = [];
-            }
-        }
         setQuery({ips: ips, apis: apis});
         if (!("onhashchange" in window)) {
             submitQuery();
