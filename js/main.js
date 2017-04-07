@@ -309,6 +309,9 @@ $(function() {
             last_lat = lat;
             last_lon = lon;
         }
+        if (locs.length == 1) {
+            locs[0].zoom = 6;
+        }
         return locs;
     };
 
