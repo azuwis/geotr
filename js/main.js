@@ -3,6 +3,7 @@ var sina = {
     deferreds: {},
     callback: function(id, ip, info) {
         if (info) {
+            info.ip = ip;
             this.deferreds[id].resolve(info);
         } else {
             this.deferreds[id].reject(info);
@@ -29,8 +30,10 @@ $(function() {
         ipapi: function(ips) {
             var ipapiProxy = function(ip) {
                 if (location.protocol == 'https:') {
-                    return yql({
-                        url: 'http://ip-api.com/json/' + ip
+                    return getIpDeferred(ip, 'freegeoip').then(function(ip) {
+                        return yql({
+                            url: 'http://ip-api.com/json/' + ip
+                        });
                     });
                 } else {
                     return $.ajax({
@@ -55,6 +58,7 @@ $(function() {
                         isp = 'CNC';
                     }
                     return {
+                        ip: elem.query,
                         country: elem.country,
                         region: region,
                         city: city,
@@ -74,6 +78,7 @@ $(function() {
                     var latlon = data.loc.split(',');
                     var lat = latlon[0], lon = latlon[1];
                     return {
+                        ip: data.ip,
                         country: data.country,
                         region: data.region,
                         city: data.city,
@@ -93,6 +98,7 @@ $(function() {
                     // jsonpCallback: 'callback_' + ip.replace(/\./g, '_')
                 }).then(function(data) {
                     return {
+                        ip: data.ip,
                         country: data.country_name,
                         region: data.region_name,
                         city: data.city,
@@ -119,6 +125,7 @@ $(function() {
                         city = data_city.names.en;
                     }
                     return {
+                        ip: data.traits.ip_address,
                         country: data.country.names.en,
                         region: region,
                         city: city,
@@ -155,6 +162,7 @@ $(function() {
                         addr = y;
                     }
                     return {
+                        ip: data.ip,
                         country: country,
                         region: region.replace(/(市|省)$/, ''),
                         city: city.replace(/市$/, ''),
@@ -170,13 +178,18 @@ $(function() {
         sina: function(ips) {
             sina.init();
             var sinaProxy = function(ip) {
-                if (location.protocol == 'https:') {
-                    return yql({
-                        url: 'http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=' + ip
-                    });
-                } else {
-                    return sina.getInfo(ip);
-                }
+                return getIpDeferred(ip, 'pconline').then(function(ip) {
+                    if (location.protocol == 'https:') {
+                        return yql({
+                            url: 'http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=' + ip
+                        }).then(function(data) {
+                            data.ip = ip;
+                            return data;
+                        });
+                    } else {
+                        return sina.getInfo(ip);
+                    }
+                });
             };
             return getInfoMulti('sina', ips, function(ip) {
                 return sinaProxy(ip).then(function(data) {
@@ -186,6 +199,7 @@ $(function() {
                         marker = true;
                     }
                     return {
+                        ip: data.ip,
                         country: data.country,
                         region: data.province,
                         city: data.city,
@@ -202,8 +216,10 @@ $(function() {
             return getInfoMulti('taotao', ips, function(ip, index) {
                 return wait(index * 120).then(function() {
                     return retryService(function() {
-                        return yql({
-                            url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
+                        return getIpDeferred(ip, 'pconline').then(function(ip) {
+                            return yql({
+                                url: 'http://ip.taobao.com/service/getIpInfo.php?ip=' + ip
+                            });
                         });
                     }, 3, 150).tryIt();
                 }).then(function(info) {
@@ -214,6 +230,7 @@ $(function() {
                         marker = true;
                     }
                     return {
+                        ip: data.ip,
                         country: data.country,
                         region: data.region.replace(/(市|省)$/, ''),
                         city: data.city.replace(/市$/, ''),
@@ -235,6 +252,10 @@ $(function() {
                 return data;
             } else {
                 return func(ip, index).then(function(data) {
+                    data.num = index + 1;
+                    if (!data.ip) {
+                        data.ip = ips[index];
+                    }
                     if (data.address) {
                         return $.get(google_geocode_url + data.address)
                             .then(function(geo) {
@@ -244,23 +265,33 @@ $(function() {
                                     data.lat = location.lat;
                                     data.lon = location.lng;
                                 }
-                                storage.set(key + '_' + ip, data, 1440);
+                                if (ip != '') {
+                                    storage.set(key + '_' + ip, data, 1440);
+                                }
                                 return data;
                             });
                     } else {
-                        storage.set(key + '_' + ip, data, 1440);
+                        if (ip != '') {
+                            storage.set(key + '_' + ip, data, 1440);
+                        }
                         return data;
                     }
                 });
             }
         });
         return $.when.apply(undefined, requests).then(function() {
-            return $.makeArray(arguments).map(function(data, index) {
-                data.num = index + 1;
-                data.ip = ips[index];
-                return data;
-            });
+            return $.makeArray(arguments);
         });
+    };
+
+    var getIpDeferred = function(ip, api) {
+        var deferred = ip;
+        if (deferred == '') {
+            deferred = getInfo[api]([ip]).then(function(data) {
+                return data[0].ip;
+            });
+        }
+        return $.when(deferred);
     };
 
     var getIPsFromInput = function(input) {
@@ -323,11 +354,7 @@ $(function() {
                 if (elem) {
                     var y = elem.split('=');
                     if (y.length == 2) {
-                        if (y[1] == '') {
-                            query[y[0]] = [];
-                        } else {
-                            query[y[0]] = y[1].split(',');
-                        }
+                        query[y[0]] = y[1].split(',');
                     }
                 }
             });
@@ -417,6 +444,9 @@ $(function() {
         var ips = query.ips;
         if (!ips || ips.length == 0) {
             ips = getQuery().ips;
+        }
+        if (!ips) {
+            ips = [];
         }
         window.location.hash = '#ips=' + ips.join(',') + '&apis=' + query.apis.join(',');
     };
