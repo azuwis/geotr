@@ -316,7 +316,10 @@ $(function() {
     };
 
     var getLocsFromInfo = function(info) {
-        var data = info.filter(function(elem) {
+        var data = info.filter(function(elem, index, array) {
+            if (array.length == 1) {
+                return true;
+            }
             if (elem.marker != undefined) {
                 return elem.marker;
             } else {
