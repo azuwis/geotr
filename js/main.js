@@ -527,16 +527,20 @@ $(function() {
     };
 
     var yql = function(arg) {
+        var from = 'json';
+        if (arg.from) {
+            from = arg.from;
+        }
         return $.ajax({
             url: '//query.yahooapis.com/v1/public/yql',
             data: {
-                q: 'select * from json where url="' + arg.url + '"',
+                q: 'select * from ' + from + ' where url="' + arg.url + '"' + (arg.xpath ? ' and xpath="' + arg.xpath + '"' : ''),
                 format: 'json'
             }
         }).then(function(data) {
             var results = data.query.results;
             if (results) {
-                return results.json;
+                return from == 'json' ? results.json : results;
             } else {
                 return $.Deferred().reject(data);
             }
