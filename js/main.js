@@ -42,29 +42,29 @@ $(function() {
                 }
             };
             return getInfoMulti('ipapi', ips, function(ip) {
-                return ipapiProxy(ip).then(function(elem) {
+                return ipapiProxy(ip).then(function(data) {
                     var region = '', city = '', isp = '';
-                    if (elem.isp.match(/(backbone|cnc group)/i)) {
+                    if (data.isp.match(/(backbone|cnc group)/i)) {
                         region = '';
                         city = '';
                     } else {
-                        region = elem.regionName;
-                        city = elem.city;
+                        region = data.regionName;
+                        city = data.city;
                     }
-                    isp = elem.isp;
-                    if (elem.isp.match(/telecom/i)) {
+                    isp = data.isp;
+                    if (data.isp.match(/telecom/i)) {
                         isp = 'TEL';
-                    } else if (elem.isp.match(/(cnc|unicom)/i)) {
+                    } else if (data.isp.match(/(cnc|unicom)/i)) {
                         isp = 'CNC';
                     }
                     return {
-                        ip: elem.query,
-                        country: elem.country,
+                        ip: data.query,
+                        country: data.country,
                         region: region,
                         city: city,
                         isp: isp,
-                        lat: elem.lat,
-                        lon: elem.lon
+                        lat: data.lat,
+                        lon: data.lon
                     };
                 });
             });
