@@ -254,7 +254,7 @@ $(function() {
                 return func(ip, index).then(function(data) {
                     data.num = index + 1;
                     if (!data.ip) {
-                        data.ip = ips[index];
+                        data.ip = ip;
                     }
                     if (data.address) {
                         return $.get(google_geocode_url + data.address)
@@ -265,14 +265,14 @@ $(function() {
                                     data.lat = location.lat;
                                     data.lon = location.lng;
                                 }
-                                if (ip != '') {
-                                    storage.set(key + '_' + ip, data, 1440);
+                                if (data.ip != '') {
+                                    storage.set(key + '_' + data.ip, data, 1440);
                                 }
                                 return data;
                             });
                     } else {
-                        if (ip != '') {
-                            storage.set(key + '_' + ip, data, 1440);
+                        if (data.ip != '') {
+                            storage.set(key + '_' + data.ip, data, 1440);
                         }
                         return data;
                     }
