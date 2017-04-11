@@ -252,7 +252,6 @@ $(function() {
                 return data;
             } else {
                 return func(ip, index).then(function(data) {
-                    data.num = index + 1;
                     if (!data.ip) {
                         data.ip = ip;
                     }
@@ -280,7 +279,10 @@ $(function() {
             }
         });
         return $.when.apply(undefined, requests).then(function() {
-            return $.makeArray(arguments);
+            return $.makeArray(arguments).map(function(elem, index) {
+                elem.num = index + 1;
+                return elem;
+            });
         });
     };
 
